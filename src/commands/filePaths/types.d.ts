@@ -1,4 +1,13 @@
 export interface Paths {
+  betterAuth: {
+    authClient: string;
+    authServer: string;
+    routeHandler: string;
+    signInPage: string;
+    signOutButton: string;
+    signUpPage: string;
+    updateProfile: string;
+  };
   clerk: {
     middleware: string;
     signInPage: string;

@@ -42,6 +42,7 @@ export const DBProviders: DBProviderOptions = {
 };
 
 const packageSignatures: Partial<Record<AvailablePackage, string[]>> = {
+  "better-auth": ["better-auth"],
   clerk: ["@clerk/nextjs"],
   drizzle: ["drizzle-orm", "drizzle-kit"],
   prisma: ["prisma"],
@@ -53,6 +54,7 @@ const packageSignatures: Partial<Record<AvailablePackage, string[]>> = {
 const packageCategories: Partial<
   Record<AvailablePackage, "orm" | "auth" | null>
 > = {
+  "better-auth": "auth",
   clerk: "auth",
   drizzle: "orm",
   prisma: "orm",

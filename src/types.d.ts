@@ -67,6 +67,7 @@ export interface DBField<T extends ColumnType = ColumnType> {
 export type AvailablePackage =
   | "drizzle"
   | "trpc"
+  | "better-auth"
   | "shadcn-ui"
   | "prisma"
   | "clerk"
@@ -76,7 +77,7 @@ export type AvailablePackage =
 export type PackageType = "orm" | "auth" | "componentLib" | "misc";
 export type ComponentLibType = "shadcn-ui";
 export type ORMType = "drizzle" | "prisma";
-export type AuthType = "clerk";
+export type AuthType = "better-auth" | "clerk";
 export type MiscType = "trpc" | "stripe" | "resend";
 
 export interface Config {

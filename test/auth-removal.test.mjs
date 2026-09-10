@@ -16,9 +16,13 @@ const CHECK_AUTH_PATTERN = /export const checkAuth/;
 const AUTH_SCHEMA_IMPORT_PATTERN = /from "\.\/auth"/;
 const USER_REFERENCE_PATTERN = /references\(\(\) => users\.id\)/;
 
-test("only Clerk is selectable after removing legacy auth", () => {
-  assert.deepEqual(Packages.auth, [{ name: "Clerk", value: "clerk" }]);
+test("only Better Auth and Clerk are selectable after removing legacy auth", () => {
+  assert.deepEqual(Packages.auth, [
+    { name: "Better Auth", value: "better-auth" },
+    { name: "Clerk", value: "clerk" },
+  ]);
   assert.equal(authUsesDatabaseUser("clerk"), false);
+  assert.equal(authUsesDatabaseUser("better-auth"), true);
 });
 
 for (const auth of ["next-auth", "lucia", "kinde"]) {

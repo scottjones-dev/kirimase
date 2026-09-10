@@ -4,6 +4,15 @@ import type { Paths } from "./types.js";
 
 export const paths: { t3: Paths; normal: Paths } = {
   normal: {
+    betterAuth: {
+      authClient: "lib/auth-client.ts",
+      authServer: "lib/auth.ts",
+      routeHandler: "app/api/auth/[...all]/route.ts",
+      signInPage: "app/(auth)/sign-in/page.tsx",
+      signOutButton: "components/auth/SignOutButton.tsx",
+      signUpPage: "app/(auth)/sign-up/page.tsx",
+      updateProfile: "app/(app)/account/UpdateProfile.tsx",
+    },
     clerk: {
       middleware: "middleware.ts",
       signInPage: "app/(auth)/sign-in/[[...sign-in]]/page.tsx",
@@ -78,6 +87,15 @@ export const paths: { t3: Paths; normal: Paths } = {
     },
   },
   t3: {
+    betterAuth: {
+      authClient: "lib/auth-client.ts",
+      authServer: "lib/auth.ts",
+      routeHandler: "app/api/auth/[...all]/route.ts",
+      signInPage: "app/(auth)/sign-in/page.tsx",
+      signOutButton: "components/auth/SignOutButton.tsx",
+      signUpPage: "app/(auth)/sign-up/page.tsx",
+      updateProfile: "app/(app)/account/UpdateProfile.tsx",
+    },
     clerk: {
       middleware: "middleware.ts",
       signInPage: "app/(auth)/sign-in/[[...sign-in]]/page.tsx",

@@ -8,6 +8,12 @@ export interface AuthIntegration {
 }
 
 const integrations: Record<AuthType, AuthIntegration> = {
+  "better-auth": {
+    ownsUserRecords: true,
+    schemaExportNames: ["user", "session", "account", "verification"],
+    userModelName: "User",
+    userTableName: "user",
+  },
   clerk: {
     ownsUserRecords: false,
     schemaExportNames: [],

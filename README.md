@@ -80,6 +80,11 @@ Initializes and configures the following packages for your Next.js project, cate
 
 ### Authentication
 
+#### Better Auth
+
+- Generates email/password sign-in and sign-up, optional Apple, Discord, GitHub, and Google buttons, server sessions, route protection, sign-out, and profile-name updates.
+- Configures the official Drizzle or Prisma adapter and runs the pinned Better Auth schema generator. Kirimase prints the database migration command but never applies it.
+
 #### Clerk
 
 - Generates files for [Clerk](https://github.com/clerkinc/javascript) including all necessary config.
@@ -144,7 +149,7 @@ Kirimase generates:
 As of v0.0.23, you can run `kirimase init` and `kirimase add` entirely via the command line as follows:
 
 ```sh
-kirimase init -sf yes -pm bun --orm prisma -db pg -a clerk -mp trpc stripe resend -cl shadcn-ui -ie yes
+kirimase init -sf yes -pm pnpm --orm prisma -db pg -a better-auth -ap github discord -mp trpc stripe resend -cl shadcn-ui -ie yes
 ```
 
 | Command | Short Flag | Long Option       | Description                                    | Argument          |

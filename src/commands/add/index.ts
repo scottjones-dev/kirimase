@@ -11,6 +11,7 @@ import {
 import { formatFilePath, getFilePaths } from "../filePaths/index.js";
 import { initProject } from "../init/index.js";
 import { checkForExistingPackages } from "../init/utils.js";
+import { addBetterAuth } from "./auth/better-auth/index.js";
 import { addClerk } from "./auth/clerk/index.js";
 import { createAccountSettingsPage } from "./auth/shared/index.js";
 import { installShadcnUI } from "./componentLib/shadcn-ui/index.js";
@@ -30,6 +31,7 @@ import { addDrizzle } from "./orm/drizzle/index.js";
 import { addPrisma } from "./orm/prisma/index.js";
 import {
   askAuth,
+  askAuthProvider,
   askComponentLib,
   askDbProvider,
   askDbType,
@@ -44,6 +46,7 @@ import {
   installPackagesFromList,
   installShadcnComponentList,
   printNextSteps,
+  runPostInstallTasks,
 } from "./utils.js";
 
 type ProjectConfig = ReturnType<typeof readConfigFile>;
@@ -102,7 +105,10 @@ const promptUser = async (options?: InitOptions): Promise<InitOptions> => {
 
   const auth = config.auth || !orm ? undefined : await askAuth(options);
 
-  const authProviders = undefined;
+  const authProviders =
+    auth === "better-auth"
+      ? (options?.authProviders ?? (await askAuthProvider()))
+      : undefined;
 
   const hasOrmAndAuth = !!(
     config.auth ||
@@ -200,6 +206,9 @@ const configureAuth = async (
   }
 
   switch (response.auth) {
+    case "better-auth":
+      addBetterAuth(response.authProviders ?? [], options);
+      break;
     case "clerk":
       await addClerk(options);
       break;
@@ -218,7 +227,9 @@ const configureAuth = async (
   }
 
   if (response.auth && options?.headless === undefined) {
-    await createAccountSettingsPage();
+    if (response.auth === "clerk") {
+      createAccountSettingsPage();
+    }
     addAuthCheckToAppLayout();
   }
   if (options?.headless === undefined) {
@@ -283,6 +294,7 @@ export const addPackage = async (options?: InitOptions, init = false) => {
     spinner.succeed("Configuration complete");
 
     await installPackagesFromList();
+    await runPostInstallTasks();
     await installShadcnComponentList();
 
     const end = Date.now();

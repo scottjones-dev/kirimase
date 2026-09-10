@@ -13,7 +13,7 @@ const cliDescriptionPattern = /Kirimase CLI/;
 const generateCommandPattern = /generate/;
 const initCommandPattern = /init/;
 const unknownCommandPattern = /unknown command/;
-const versionPattern = /^0\.0\.60\s*$/;
+const versionPattern = /^0\.1\.0\s*$/;
 
 const runCli = (...args) =>
   spawnSync(process.execPath, [cliPath, ...args], {

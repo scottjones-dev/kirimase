@@ -155,7 +155,7 @@ export const updateRootSchema = (
     getAuthIntegration(auth ?? null)?.schemaExportNames.join(", ") ?? "";
 
   const newImportStatement = usingAuth
-    ? `import { ${tableNames} } from "./auth"`
+    ? `import { ${tableNames} } from "./auth";\n`
     : `import { ${tableNameCC} } from "./${tableNameCC}";\n`;
 
   // check if schema/_root.ts exists
@@ -165,7 +165,7 @@ export const updateRootSchema = (
     const rootSchemaContents = readFileSync(rootSchemaPath, "utf-8");
     const rootSchemaWithNewExport = rootSchemaContents.replace(
       "export {",
-      `export { ${tableNameCC},`
+      `export { ${usingAuth ? tableNames : tableNameCC},`
     );
 
     const importInsertionPoint = rootSchemaWithNewExport.lastIndexOf("import");

@@ -7,7 +7,7 @@ import { initProject } from "./commands/init/index.js";
 import { toggleAnalytics } from "./commands/init/utils.js";
 
 const program = new Command();
-program.name("kirimase").description("Kirimase CLI").version("0.0.60");
+program.name("kirimase").description("Kirimase CLI").version("0.1.0");
 
 program
   .command("analytics")
@@ -44,7 +44,7 @@ function addCommonOptions(command: Command) {
     .option("-o, --orm <orm>", "preferred orm (prisma, drizzle)")
     .option("-db, --db <db>", "preferred database (pg, mysql, sqlite)")
     .option("-dbp, --db-provider <db>", "database provider")
-    .option("-a, --auth <auth>", "preferred auth (clerk)")
+    .option("-a, --auth <auth>", "preferred auth (better-auth, clerk)")
     .option(
       "-ap, --auth-providers <auth-providers...>",
       "social auth providers (discord, google, github, apple)"

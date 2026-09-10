@@ -1,11 +1,12 @@
 {
   "name": "kirimase",
-  "version": "0.0.60",
+  "version": "0.1.0",
   "description": "A Rails-like CLI for building full-stack Next.js apps faster",
   "keywords": [
     "cli",
     "nextjs",
     "drizzle",
+    "better-auth",
     "rails",
     "shadcn"
   ],

@@ -23,7 +23,10 @@ export const Packages: {
     disabled?: boolean;
   }[];
 } = {
-  auth: [{ name: "Clerk", value: "clerk" }],
+  auth: [
+    { name: "Better Auth", value: "better-auth" },
+    { name: "Clerk", value: "clerk" },
+  ],
   componentLib: [{ name: "Shadcn UI (with next-themes)", value: "shadcn-ui" }],
   misc: [
     { name: "TRPC", value: "trpc" },
@@ -269,6 +272,17 @@ const installList: { regular: string[]; dev: string[] } = {
   dev: [],
   regular: [],
 };
+const postInstallTasks: Array<() => Promise<void>> = [];
+
+export const addPostInstallTask = (task: () => Promise<void>) => {
+  postInstallTasks.push(task);
+};
+
+export const runPostInstallTasks = async () => {
+  await postInstallTasks
+    .splice(0)
+    .reduce((previous, task) => previous.then(task), Promise.resolve());
+};
 
 export const addToInstallList = (packages: {
   regular: string[];
@@ -323,8 +337,8 @@ const describeOrm = (options: InitOptions) => {
 };
 
 const describeAuth = (options: InitOptions) =>
-  options.auth === "clerk"
-    ? `${chalk.underline("Authentication")}: Clerk`
+  options.auth
+    ? `${chalk.underline("Authentication")}: ${options.auth === "better-auth" ? "Better Auth" : "Clerk"}`
     : null;
 
 const describeSelectedPackages = (options: InitOptions) => {
@@ -345,6 +359,19 @@ const describeSelectedPackages = (options: InitOptions) => {
   );
 };
 
+const packageBinaryCommand = (packageManager: string, command: string) => {
+  if (packageManager === "npm") {
+    return `npm exec -- ${command}`;
+  }
+  if (packageManager === "pnpm") {
+    return `pnpm exec ${command}`;
+  }
+  if (packageManager === "bun") {
+    return `bunx ${command}`;
+  }
+  return `yarn ${command}`;
+};
+
 export const printNextSteps = (
   promptResponses: InitOptions,
   duration: number,
@@ -360,9 +387,15 @@ export const printNextSteps = (
     promptResponses.miscPackages?.includes("resend") ||
     promptResponses.miscPackages?.includes("stripe");
 
+  const migrationCommands =
+    config.orm === "drizzle"
+      ? ["drizzle-kit generate", "drizzle-kit migrate"]
+      : ["prisma migrate dev"];
   const dbMigration = [
-    ...(config.t3 === true ? [] : [`Run \`${ppm} run db:generate\``]),
-    `Run \`${ppm} run db:push`,
+    "Review the generated auth schema",
+    ...migrationCommands.map(
+      (command) => `Run \`${packageBinaryCommand(ppm, command)}\``
+    ),
     `Run \`${ppm} run dev\``,
     "Open http://localhost:3000 in your browser",
   ];
