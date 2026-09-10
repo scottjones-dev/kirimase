@@ -1,6 +1,6 @@
-import { existsSync, readFileSync } from "fs";
-import { createFile, readConfigFile, replaceFile } from "../../../../utils.js";
+import { existsSync, readFileSync } from "node:fs";
 import { consola } from "consola";
+import { createFile, readConfigFile, replaceFile } from "../../../../utils.js";
 import { formatFilePath, getFilePaths } from "../../../filePaths/index.js";
 
 export function addToDrizzleModel(
@@ -22,11 +22,10 @@ export function addToDrizzleModel(
     // Find the start and end positions of the specified model
     const { modelEnd } = getDrizzleModelStartAndEnd(schema, modelName);
     // Split the schema and insert the attributes at the right position
-    const beforeModelEnd = schema.substring(0, modelEnd);
-    const afterModelEnd = schema.substring(modelEnd);
+    const beforeModelEnd = schema.slice(0, modelEnd);
+    const afterModelEnd = schema.slice(modelEnd);
 
-    const newSchema =
-      beforeModelEnd + "  " + attributesToAdd + "\n" + afterModelEnd;
+    const newSchema = `${beforeModelEnd}  ${attributesToAdd}\n${afterModelEnd}`;
     const newSchemaWithUpdatedImports = newSchema.replace(
       '} from "drizzle-orm',
       `${additionalImports.map((i) => `, ${i}`)} } from "drizzle-orm`
@@ -46,7 +45,7 @@ const getDrizzleModelStartAndEnd = (schema: string, modelName: string) => {
   if (modelEnd === -1) {
     modelExists = false;
   }
-  return { modelStart, modelEnd, modelExists };
+  return { modelEnd, modelExists, modelStart };
 };
 
 export const addNanoidToUtils = () => {
@@ -54,19 +53,19 @@ export const addNanoidToUtils = () => {
 export const nanoid = customAlphabet("abcdefghijklmnopqrstuvwxyz0123456789");`;
   const { shared } = getFilePaths();
   const utilsPath = formatFilePath(shared.init.libUtils, {
-    removeExtension: false,
     prefix: "rootPath",
+    removeExtension: false,
   });
   const utilsExists = existsSync(utilsPath);
-  if (!utilsExists) {
-    createFile(utilsPath, nanoidContent);
-  } else {
+  if (utilsExists) {
     const utilsContent = readFileSync(utilsPath, "utf-8");
     const newContent = `${nanoidContent.split("\n")[0].trim()}
 ${utilsContent}
 ${nanoidContent.split("\n")[1].trim()}
 `;
     replaceFile(utilsPath, newContent);
+  } else {
+    createFile(utilsPath, nanoidContent);
   }
 };
 
@@ -78,13 +77,11 @@ export const checkTimestampsInUtils = () => {
 `;
   const { shared } = getFilePaths();
   const utilsPath = formatFilePath(shared.init.libUtils, {
-    removeExtension: false,
     prefix: "rootPath",
+    removeExtension: false,
   });
   const utilsExists = existsSync(utilsPath);
-  if (!utilsExists) {
-    createFile(utilsPath, timestampsContent);
-  } else {
+  if (utilsExists) {
     const utilsContent = readFileSync(utilsPath, "utf-8");
     if (utilsContent.indexOf(timestampsContent) === -1) {
       const newContent = `${utilsContent}
@@ -92,5 +89,7 @@ ${timestampsContent}
 `;
       replaceFile(utilsPath, newContent);
     }
+  } else {
+    createFile(utilsPath, timestampsContent);
   }
 };

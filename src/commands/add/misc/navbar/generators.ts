@@ -12,8 +12,8 @@ export const addNavbarAndSettings = () => {
   // create navbar
   createFile(
     formatFilePath("components/Navbar.tsx", {
-      removeExtension: false,
       prefix: "rootPath",
+      removeExtension: false,
     }),
     generateNavbarTsx()
   );
@@ -21,8 +21,8 @@ export const addNavbarAndSettings = () => {
   // create sidebar
   createFile(
     formatFilePath("components/Sidebar.tsx", {
-      removeExtension: false,
       prefix: "rootPath",
+      removeExtension: false,
     }),
     generateSidebarTsx()
   );
@@ -30,8 +30,8 @@ export const addNavbarAndSettings = () => {
   // create sidebaritems
   createFile(
     formatFilePath("components/SidebarItems.tsx", {
-      removeExtension: false,
       prefix: "rootPath",
+      removeExtension: false,
     }),
     generateSidebarItemsTsx()
   );
@@ -39,31 +39,31 @@ export const addNavbarAndSettings = () => {
   // create sidebaritems
   createFile(
     formatFilePath("config/nav.ts", {
-      removeExtension: false,
       prefix: "rootPath",
+      removeExtension: false,
     }),
     generateNavConfig()
   );
 
   // create settings page
 
-  if (componentLib === "shadcn-ui")
+  if (componentLib === "shadcn-ui") {
     createFile(
       formatFilePath("app/(app)/settings/page.tsx", {
-        removeExtension: false,
         prefix: "rootPath",
+        removeExtension: false,
       }),
       generateSettingsPage()
     );
+  }
 };
 
-const generateSettingsPage = () => {
-  return `"use client";
+const generateSettingsPage = () => `"use client";
 
 import { Button } from "${formatFilePath("components/ui/button", {
-    prefix: "alias",
-    removeExtension: false,
-  })}";
+  prefix: "alias",
+  removeExtension: false,
+})}";
 import { useTheme } from "next-themes";
 
 export default function Page() {
@@ -168,7 +168,6 @@ export default function Page() {
   );
 }
 `;
-};
 
 const generateNavConfig = () => {
   const { componentLib, auth } = readConfigFile();
@@ -188,9 +187,9 @@ type AdditionalLinks = {
 
 export const defaultLinks: SidebarLink[] = [
   { href: "/dashboard", title: "Home", icon: HomeIcon },${
-    auth !== null
-      ? `\n  { href: "/account", title: "Account", icon: User },`
-      : ""
+    auth === null
+      ? ""
+      : `\n  { href: "/account", title: "Account", icon: User },`
   }${
     componentLib === "shadcn-ui"
       ? `\n  { href: "/settings", title: "Settings", icon: Cog },`
@@ -221,8 +220,8 @@ ${
     : ""
 }
 import { defaultLinks, additionalLinks } from "${formatFilePath("config/nav", {
-    removeExtension: false,
     prefix: "alias",
+    removeExtension: false,
   })}";
 
 export interface SidebarLink {
@@ -336,24 +335,48 @@ const Sidebar = () => {
 
 export default Sidebar;
 `;
-  } else
-    return `import Link from "next/link";
+  }
+  let avatarImport = "";
+  if (auth === "clerk") {
+    avatarImport = 'import { UserButton } from "@clerk/nextjs";';
+  } else if (componentLib === "shadcn-ui") {
+    avatarImport = '\nimport { Avatar, AvatarFallback } from "./ui/avatar";';
+  }
 
-import SidebarItems from "./SidebarItems";${
-      auth === "clerk"
-        ? `import { UserButton } from "@clerk/nextjs";`
-        : componentLib === "shadcn-ui"
-          ? `\nimport { Avatar, AvatarFallback } from "./ui/avatar";`
-          : null
-    }
+  let avatar = `<div className="p-1.5 rounded-full border-border border-2 text-muted-foreground">
+          {user.name
+            ? user.name
+                ?.split(" ")
+                .map((word) => word[0].toUpperCase())
+                .join("")
+            : "~"}
+        </div>`;
+  if (auth === "clerk") {
+    avatar = '<UserButton afterSignOutUrl="/" />';
+  } else if (componentLib === "shadcn-ui") {
+    avatar = `<Avatar className="h-10 w-10">
+          <AvatarFallback className="border-border border-2 text-muted-foreground">
+            {user.name
+              ? user.name
+                  ?.split(" ")
+                  .map((word) => word[0].toUpperCase())
+                  .join("")
+              : "~"}
+          </AvatarFallback>
+        </Avatar>`;
+  }
+
+  return `import Link from "next/link";
+
+import SidebarItems from "./SidebarItems";${avatarImport}
 
 import { AuthSession, getUserAuth } from "${formatFilePath(
-      shared.auth.authUtils,
-      {
-        prefix: "alias",
-        removeExtension: true,
-      }
-    )}";
+    shared.auth.authUtils,
+    {
+      prefix: "alias",
+      removeExtension: true,
+    }
+  )}";
 
 const Sidebar = async () => {
   const session = await getUserAuth();
@@ -389,29 +412,7 @@ const UserDetails = ({ session }: { session: AuthSession }) => {
             {user.email ?? "john@doe.com"}
           </p>
         </div>
-        ${
-          auth === "clerk"
-            ? `<UserButton afterSignOutUrl="/" />`
-            : componentLib === "shadcn-ui"
-              ? `<Avatar className="h-10 w-10">
-          <AvatarFallback className="border-border border-2 text-muted-foreground">
-            {user.name
-              ? user.name
-                  ?.split(" ")
-                  .map((word) => word[0].toUpperCase())
-                  .join("")
-              : "~"}
-          </AvatarFallback>
-        </Avatar>`
-              : `<div className="p-1.5 rounded-full border-border border-2 text-muted-foreground">
-          {user.name
-            ? user.name
-                ?.split(" ")
-                .map((word) => word[0].toUpperCase())
-                .join("")
-            : "~"}
-        </div>`
-        }
+        ${avatar}
       </div>
     </Link>
   );

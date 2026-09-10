@@ -1,11 +1,11 @@
-import { ORMType } from "../../../../../types.js";
-import { Schema } from "../../../types.js";
+import type { ORMType } from "../../../../../types.js";
+import type { Schema } from "../../../types.js";
 import {
-  ZodMapping,
   formatTableName,
   getNonStringFields,
   getZodMappings,
   toCamelCase,
+  type ZodMapping,
 } from "../../../utils.js";
 
 const createInsertZodSchema = (
@@ -30,10 +30,10 @@ const createInsertZodSchema = (
       ? `createInsertSchema(${tableNameCamelCase})${
           schema.includeTimestamps ? ".omit(timestamps)" : ""
         }`
-      : `baseSchema.omit({ id: true })`
+      : "baseSchema.omit({ id: true })"
   };`;
   const insertParams = `export const insert${tableNameSingularCapitalised}Params = ${
-    orm === "drizzle" ? `baseSchema.extend(` : `baseSchema.extend(`
+    orm === "drizzle" ? "baseSchema.extend(" : "baseSchema.extend("
   }{${
     zodMappings.length > 0
       ? `\n  ${zodMappings
@@ -43,7 +43,7 @@ const createInsertZodSchema = (
                 field.type === "string" ? ".min(1)" : ""
               }`
           )
-          .join(`,\n  `)}\n`
+          .join(",\n  ")}\n`
       : ""
   }}).omit({ 
   id: true${schema.belongsToUser ? ",\n  userId: true" : ""}
@@ -56,19 +56,15 @@ const createUpdateZodSchema = (
   orm: ORMType,
   zodMappings: ZodMapping[]
 ) => {
-  const {
-    tableNameSingular,
-    tableNameCamelCase,
-    tableNameSingularCapitalised,
-  } = formatTableName(schema.tableName);
+  const { tableNameSingularCapitalised } = formatTableName(schema.tableName);
 
   const updateSchema = `export const update${tableNameSingularCapitalised}Schema = ${
-    orm === "drizzle" ? `baseSchema` : `baseSchema`
+    orm === "drizzle" ? "baseSchema" : "baseSchema"
   };`;
 
   const updateParams = `export const update${tableNameSingularCapitalised}Params = ${
     orm === "drizzle"
-      ? `baseSchema.extend(`
+      ? "baseSchema.extend("
       : `update${tableNameSingularCapitalised}Schema.extend(`
   }{${
     zodMappings.length > 0
@@ -79,7 +75,7 @@ const createUpdateZodSchema = (
                 field.type === "string" ? ".min(1)" : ""
               }`
           )
-          .join(`,\n  `)}\n`
+          .join(",\n  ")}\n`
       : ""
   }})${
     schema.belongsToUser
@@ -92,9 +88,7 @@ const createUpdateZodSchema = (
 };
 
 const createIdZodSchema = (schema: Schema) => {
-  const { tableNameSingular, tableNameSingularCapitalised } = formatTableName(
-    schema.tableName
-  );
+  const { tableNameSingular } = formatTableName(schema.tableName);
   return `export const ${tableNameSingular}IdSchema = baseSchema.pick({ id: true });`;
 };
 

@@ -1,12 +1,21 @@
-import { consola } from "consola";
+import type { InitOptions } from "../../../../types.js";
 import {
   addPackageToConfig,
   createFile,
-  installPackages,
   readConfigFile,
   replaceFile,
   updateConfigFile,
 } from "../../../../utils.js";
+import { formatFilePath, getFilePaths } from "../../../filePaths/index.js";
+import { updateRootSchema } from "../../../generate/generators/model/utils.js";
+import { addToPrismaSchema } from "../../../generate/utils.js";
+import { addToDotEnv } from "../../orm/drizzle/generators.js";
+import {
+  addContextProviderToAppLayout,
+  // addContextProviderToAuthLayout,
+  addToInstallList,
+} from "../../utils.js";
+import { updateTrpcWithSessionIfInstalled } from "../shared/index.js";
 import {
   apiAuthNextAuthTs,
   createDrizzleAuthSchema,
@@ -17,42 +26,28 @@ import {
   libAuthProviderTsx,
   libAuthUtilsTs,
 } from "./generators.js";
-import { AuthDriver, AuthProvider, AuthProviders } from "./utils.js";
-import {
-  addContextProviderToAppLayout,
-  // addContextProviderToAuthLayout,
-  addToInstallList,
-} from "../../utils.js";
-import { addToDotEnv } from "../../orm/drizzle/generators.js";
-import { addToPrismaSchema } from "../../../generate/utils.js";
-import { prismaGenerate } from "../../orm/utils.js";
-import { InitOptions } from "../../../../types.js";
-import { formatFilePath, getFilePaths } from "../../../filePaths/index.js";
-import { updateRootSchema } from "../../../generate/generators/model/utils.js";
-import { updateTrpcWithSessionIfInstalled } from "../shared/index.js";
+import { AuthDriver, type AuthProvider } from "./utils.js";
 
-export const addNextAuth = async (
+export const addNextAuth = (
   providers: AuthProvider[],
   options?: InitOptions
 ) => {
   const {
     hasSrc,
-    preferredPackageManager,
     driver,
-    packages,
     orm,
     componentLib,
     provider: dbProvider,
     t3,
   } = readConfigFile();
-  const rootPath = `${hasSrc ? "src/" : ""}`;
+  const _rootPath = `${hasSrc ? "src/" : ""}`;
   const { "next-auth": nextAuth, shared } = getFilePaths();
 
   // 1. Create app/api/auth/[...nextauth].ts
   createFile(
     formatFilePath(nextAuth.nextAuthApiRoute, {
-      removeExtension: false,
       prefix: "rootPath",
+      removeExtension: false,
     }),
     apiAuthNextAuthTs()
   );
@@ -60,8 +55,8 @@ export const addNextAuth = async (
   // 2. create lib/auth/Provider.tsx
   createFile(
     formatFilePath(nextAuth.authProviderComponent, {
-      removeExtension: false,
       prefix: "rootPath",
+      removeExtension: false,
     }),
     libAuthProviderTsx()
   );
@@ -69,8 +64,8 @@ export const addNextAuth = async (
   // 3. create lib/auth/utils.ts
   createFile(
     formatFilePath(shared.auth.authUtils, {
-      removeExtension: false,
       prefix: "rootPath",
+      removeExtension: false,
     }),
     libAuthUtilsTs(providers, driver, orm)
   );
@@ -80,8 +75,8 @@ export const addNextAuth = async (
     if (orm === "drizzle") {
       createFile(
         formatFilePath(shared.auth.authSchema, {
-          removeExtension: false,
           prefix: "rootPath",
+          removeExtension: false,
         }),
         createDrizzleAuthSchema(driver)
       );
@@ -104,8 +99,8 @@ export const addNextAuth = async (
   // 5. create components/auth/SignIn.tsx - TODO - may be causing problems
   createFile(
     formatFilePath(shared.auth.signInComponent, {
-      removeExtension: false,
       prefix: "rootPath",
+      removeExtension: false,
     }),
     createSignInComponent(componentLib)
   );
@@ -116,8 +111,8 @@ export const addNextAuth = async (
   if (options.headless === undefined) {
     replaceFile(
       formatFilePath(shared.init.dashboardRoute, {
-        removeExtension: false,
         prefix: "rootPath",
+        removeExtension: false,
       }),
       generateUpdatedRootRoute()
     );
@@ -127,8 +122,8 @@ export const addNextAuth = async (
   if (options.headless === undefined) {
     createFile(
       formatFilePath(nextAuth.signInPage, {
-        removeExtension: false,
         prefix: "rootPath",
+        removeExtension: false,
       }),
       generateSignInPage()
     );
@@ -138,15 +133,13 @@ export const addNextAuth = async (
   addToDotEnv(
     [
       {
-        key: "NEXTAUTH_SECRET",
-        value: "your_super_secret_key_here",
         customZodImplementation: `process.env.NODE_ENV === "production"
         ? z.string().min(1)
         : z.string().min(1).optional()`,
+        key: "NEXTAUTH_SECRET",
+        value: "your_super_secret_key_here",
       },
       {
-        key: "NEXTAUTH_URL",
-        value: "http://localhost:3000",
         customZodImplementation: `z.preprocess(
       // This makes Vercel deployments not fail if you don't set NEXTAUTH_URL
       // Since NextAuth.js automatically uses the VERCEL_URL if present.
@@ -154,6 +147,8 @@ export const addNextAuth = async (
       // VERCEL_URL doesn't include \`https\` so it cant be validated as a URL
       process.env.VERCEL_URL ? z.string().min(1) : z.string().url()
     )`,
+        key: "NEXTAUTH_URL",
+        value: "http://localhost:3000",
       },
       ...providers.flatMap((p) => [
         {
@@ -182,9 +177,10 @@ export const addNextAuth = async (
   //   preferredPackageManager
   // );
 
-  addToInstallList({ regular: ["@auth/core", "next-auth"], dev: [] });
-  if (orm !== null)
-    addToInstallList({ regular: [AuthDriver[orm].package], dev: [] });
+  addToInstallList({ dev: [], regular: ["@auth/core", "next-auth"] });
+  if (orm !== null) {
+    addToInstallList({ dev: [], regular: [AuthDriver[orm].package] });
+  }
 
   addPackageToConfig("next-auth");
   updateConfigFile({ auth: "next-auth" });

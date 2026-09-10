@@ -1,4 +1,4 @@
-import { existsSync } from "fs";
+import { existsSync } from "node:fs";
 import { readConfigFile } from "../../../../utils.js";
 import {
   formatFilePath,
@@ -175,8 +175,7 @@ export const trpc = createTRPCReact<AppRouter>({});`;
 };
 
 // 6. create lib/trpc/Provider.tsx
-export const libTrpcProviderTsx = () => {
-  return `"use client";
+export const libTrpcProviderTsx = () => `"use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { loggerLink, unstable_httpBatchStreamLink } from "@trpc/client";
@@ -223,7 +222,6 @@ export default function TrpcProvider({
   );
 }
 `;
-};
 
 // 7. create lib/trpc/serverClient.ts
 export const libTrpcServerClientTs = () => {
@@ -335,29 +333,7 @@ export const libTrpcContextTs = () => {
   const { shared } = getFilePaths();
   const withSession = t3 === false && auth !== null;
 
-  if (dbIndexPath !== null) {
-    return `import { db } from "${formatFilePath(dbIndexPath, {
-      prefix: "alias",
-      removeExtension: true,
-    })}"
-${withSession ? "" : " // "}import { getUserAuth } from "${formatFilePath(
-      shared.auth.authUtils,
-      { prefix: "alias", removeExtension: true }
-    )}";
-
-export async function createTRPCContext(opts: { headers: Headers }) {
-${withSession ? "" : " // "}const { session } = await getUserAuth();
-
-  return {
-    db,
-    ${withSession ? "" : "// "} session: session,
-    ...opts,
-  }
-}
-
-export type Context = Awaited<ReturnType<typeof createTRPCContext>>;
-`;
-  } else {
+  if (dbIndexPath === null) {
     return `// import { db } from "path/to/your/db"
 // import { getUserAuth } from "path/to/your/auth"
 
@@ -374,6 +350,27 @@ export async function createTRPCContext(opts: { headers: Headers }) {
 export type Context = Awaited<ReturnType<typeof createTRPCContext>>;
 `;
   }
+  return `import { db } from "${formatFilePath(dbIndexPath, {
+    prefix: "alias",
+    removeExtension: true,
+  })}"
+${withSession ? "" : " // "}import { getUserAuth } from "${formatFilePath(
+    shared.auth.authUtils,
+    { prefix: "alias", removeExtension: true }
+  )}";
+
+export async function createTRPCContext(opts: { headers: Headers }) {
+${withSession ? "" : " // "}const { session } = await getUserAuth();
+
+  return {
+    db,
+    ${withSession ? "" : "// "} session: session,
+    ...opts,
+  }
+}
+
+export type Context = Awaited<ReturnType<typeof createTRPCContext>>;
+`;
 };
 
 export const libTrpcUtilsTs = () => {

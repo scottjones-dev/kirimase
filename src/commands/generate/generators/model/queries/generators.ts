@@ -1,11 +1,11 @@
-import { DBField } from "../../../../../types.js";
 import pluralize from "pluralize";
+import type { DBField } from "../../../../../types.js";
 import {
   formatFilePath,
   getDbIndexPath,
   getFilePaths,
 } from "../../../../filePaths/index.js";
-import { ExtendedSchema, Schema } from "../../../types.js";
+import type { ExtendedSchema, Schema } from "../../../types.js";
 import { formatTableName, toCamelCase } from "../../../utils.js";
 import { generateAuthCheck } from "../utils.js";
 
@@ -20,9 +20,9 @@ const generateDrizzleImports = (schema: Schema, relations: DBField[]) => {
   const dbIndex = getDbIndexPath();
 
   const children =
-    schema.children !== undefined
-      ? schema.children.map((c) => formatTableName(c.tableName))
-      : [];
+    schema.children === undefined
+      ? []
+      : schema.children.map((c) => formatTableName(c.tableName));
 
   return `import { db } from "${formatFilePath(dbIndex, {
     prefix: "alias",
@@ -55,20 +55,20 @@ ${
         .join("")
     : ""
 }${
-    children.length > 0
-      ? children
-          .map(
-            (child) =>
-              `import { ${child.tableNameCamelCase}, type Complete${
-                child.tableNameSingularCapitalised
-              } } from "${formatFilePath(shared.orm.schemaDir, {
-                prefix: "alias",
-                removeExtension: false,
-              })}/${child.tableNameCamelCase}";\n`
-          )
-          .join("")
-      : ""
-  }`;
+  children.length > 0
+    ? children
+        .map(
+          (child) =>
+            `import { ${child.tableNameCamelCase}, type Complete${
+              child.tableNameSingularCapitalised
+            } } from "${formatFilePath(shared.orm.schemaDir, {
+              prefix: "alias",
+              removeExtension: false,
+            })}/${child.tableNameCamelCase}";\n`
+        )
+        .join("")
+    : ""
+}`;
 };
 
 const generatePrismaImports = (schema: Schema) => {
@@ -93,7 +93,7 @@ const generatePrismaImports = (schema: Schema) => {
   }
 import { type ${tableNameSingularCapitalised}Id, ${tableNameSingular}IdSchema } from "${formatFilePath(
     shared.orm.schemaDir,
-    { removeExtension: false, prefix: "alias" }
+    { prefix: "alias", removeExtension: false }
   )}/${tableNameCamelCase}";
 `;
 };
@@ -216,7 +216,7 @@ const generateDrizzleGetByIdQuery = (schema: Schema, relations: DBField[]) => {
 
 const generateDrizzleGetByIdWithChildrenQuery = (
   schema: ExtendedSchema,
-  relations: DBField[]
+  _relations: DBField[]
 ) => {
   const { tableName, belongsToUser, children } = schema;
   const {
@@ -252,10 +252,9 @@ const generateDrizzleGetByIdWithChildrenQuery = (
     children.length > 0
       ? children
           .map((child) => {
-            const {
-              tableNameCamelCase: childNameCC,
-              tableNameSingular: childNameSingular,
-            } = formatTableName(child.tableName);
+            const { tableNameCamelCase: childNameCC } = formatTableName(
+              child.tableName
+            );
             return `.leftJoin(${childNameCC}, eq(${tableNameCamelCase}.id, ${childNameCC}.${tableNameSingular}Id))`;
           })
           .join("")
@@ -268,7 +267,6 @@ const generateDrizzleGetByIdWithChildrenQuery = (
       ? children
           .map((c) => {
             const {
-              tableNameCamelCase: childCC,
               tableNameFirstChar: childFirstChar,
               tableNameSingularCapitalised: childSingularCapitalised,
               tableNameSingular: childSingular,
@@ -307,7 +305,7 @@ const generatePrismaGetQuery = (schema: Schema, relations: DBField[]) => {
   const getAuth = generateAuthCheck(schema.belongsToUser);
   return `export const get${tableNamePluralCapitalised} = async () => {${getAuth}
   const ${tableNameFirstChar} = await db.${tableNameSingular}.findMany({${
-    belongsToUser ? ` where: {userId: session?.user.id!}` : ""
+    belongsToUser ? " where: {userId: session?.user.id!}" : ""
   }${belongsToUser && relations.length > 0 ? ", " : ""}${
     relations.length > 0
       ? `include: { ${relations
@@ -335,7 +333,7 @@ const generatePrismaGetByIdQuery = (schema: Schema, relations: DBField[]) => {
   const { id: ${tableNameSingular}Id } = ${tableNameSingular}IdSchema.parse({ id });
   const ${tableNameFirstChar} = await db.${tableNameSingular}.findFirst({
     where: { id: ${tableNameSingular}Id${
-      belongsToUser ? `, userId: session?.user.id!` : ""
+      belongsToUser ? ", userId: session?.user.id!" : ""
     }}${
       relations.length > 0
         ? `,\n    include: { ${relations
@@ -351,11 +349,11 @@ const generatePrismaGetByIdQuery = (schema: Schema, relations: DBField[]) => {
 `;
 };
 
-type TJoin = {
+interface TJoin {
   name: string;
-  type: "relation" | "child";
   nameCapitalised?: string;
-};
+  type: "relation" | "child";
+}
 const generatePrismaGetByIdQueryWithChildren = (
   schema: ExtendedSchema,
   relations: DBField[]
@@ -390,7 +388,7 @@ const generatePrismaGetByIdQueryWithChildren = (
   const { id: ${tableNameSingular}Id } = ${tableNameSingular}IdSchema.parse({ id });
   const ${tableNameFirstChar} = await db.${tableNameSingular}.findFirst({
     where: { id: ${tableNameSingular}Id${
-      belongsToUser ? `, userId: session?.user.id!` : ""
+      belongsToUser ? ", userId: session?.user.id!" : ""
     }}${
       joins.length > 0
         ? `,\n    include: { ${joins
@@ -422,16 +420,16 @@ const generatePrismaGetByIdQueryWithChildren = (
 };
 
 export const generateQueries = {
-  prisma: {
-    imports: generatePrismaImports,
-    get: generatePrismaGetQuery,
-    getById: generatePrismaGetByIdQuery,
-    getByIdWithChildren: generatePrismaGetByIdQueryWithChildren,
-  },
   drizzle: {
-    imports: generateDrizzleImports,
     get: generateDrizzleGetQuery,
     getById: generateDrizzleGetByIdQuery,
     getByIdWithChildren: generateDrizzleGetByIdWithChildrenQuery,
+    imports: generateDrizzleImports,
+  },
+  prisma: {
+    get: generatePrismaGetQuery,
+    getById: generatePrismaGetByIdQuery,
+    getByIdWithChildren: generatePrismaGetByIdQueryWithChildren,
+    imports: generatePrismaImports,
   },
 };

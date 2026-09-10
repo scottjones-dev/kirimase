@@ -1,11 +1,9 @@
-import { confirm, select } from "@inquirer/prompts";
-import { DBProvider, DBType, InitOptions } from "../../../../types.js";
+import type { DBProvider, DBType, InitOptions } from "../../../../types.js";
 import {
   addPackageToConfig,
   createFolder,
   readConfigFile,
   updateConfigFile,
-  wrapInParenthesis,
 } from "../../../../utils.js";
 import {
   addScriptsToPackageJson,
@@ -25,12 +23,11 @@ export const addDrizzle = async (
   dbType: DBType,
   dbProvider: DBProvider,
   includeExampleModel: boolean,
-  initOptions?: InitOptions
+  _initOptions?: InitOptions
 ) => {
   const { preferredPackageManager, hasSrc, rootPath } = readConfigFile();
 
-  let libPath = "";
-  hasSrc ? (libPath = "src/lib") : (libPath = "lib");
+  const libPath = hasSrc ? "src/lib" : "lib";
 
   let databaseUrl = "";
 
@@ -42,8 +39,9 @@ export const addDrizzle = async (
     databaseUrl = "postgres://postgres:postgres@localhost:5432/{DB_NAME}";
   }
 
-  if (dbProvider === "neon")
+  if (dbProvider === "neon") {
     databaseUrl = databaseUrl.concat("?sslmode=require");
+  }
 
   // create all the files here
 
@@ -69,7 +67,7 @@ export const addDrizzle = async (
     dbProvider === "planetscale",
     hasSrc ? "src/" : ""
   );
-  if (dbProvider === "vercel-pg")
+  if (dbProvider === "vercel-pg") {
     addToDotEnv(
       [
         { key: "POSTGRES_URL", value: "" },
@@ -81,14 +79,16 @@ export const addDrizzle = async (
       ],
       rootPath
     );
-  if (dbProvider === "turso")
+  }
+  if (dbProvider === "turso") {
     addToDotEnv([{ key: "DATABASE_AUTH_TOKEN", value: "" }], rootPath);
+  }
 
   await updateTsConfigTarget();
 
   addNanoidToUtils();
 
-  updateConfigFile({ driver: dbType, provider: dbProvider, orm: "drizzle" });
+  updateConfigFile({ driver: dbType, orm: "drizzle", provider: dbProvider });
   await installDependencies(dbProvider, preferredPackageManager);
   addPackageToConfig("drizzle");
 };

@@ -1,5 +1,5 @@
-import { ORMType } from "../../../../../types.js";
-import { ExtendedSchema, Schema } from "../../../types.js";
+import type { ORMType } from "../../../../../types.js";
+import type { ExtendedSchema } from "../../../types.js";
 import { generateQueries } from "./generators.js";
 
 export const generateQueryContent = (schema: ExtendedSchema, orm: ORMType) => {
@@ -11,11 +11,10 @@ export const generateQueryContent = (schema: ExtendedSchema, orm: ORMType) => {
   const imports = generateQueries[orm].imports(schema, relations);
   const getQuery = generateQueries[orm].get(schema, relations);
   const getByIdQuery = generateQueries[orm].getById(schema, relations);
-  const getByIdWithChildren = hasChildren
-    ? schema.children && schema.children.length > 0
+  const getByIdWithChildren =
+    hasChildren && schema.children.length > 0
       ? generateQueries[orm].getByIdWithChildren(schema, relations)
-      : ""
-    : "";
+      : "";
 
   return `${imports}
 ${getQuery}

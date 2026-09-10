@@ -1,9 +1,14 @@
-import fs, { existsSync } from "fs";
-import path from "path";
+import fs, { existsSync } from "node:fs";
+import path from "node:path";
 import { consola } from "consola";
-import { AvailablePackage, Config, PMType, UpdateConfig } from "./types.js";
 import { execa } from "execa";
 import { spinner } from "./commands/add/index.js";
+import type {
+  AvailablePackage,
+  Config,
+  PMType,
+  UpdateConfig,
+} from "./types.js";
 
 export const delay = (ms = 2000) =>
   new Promise((resolve) => setTimeout(resolve, ms));
@@ -70,7 +75,7 @@ export async function installPackages(
   packages: { regular: string; dev: string },
   pmType: PMType
 ) {
-  const packagesListString = packages.regular.concat(" ").concat(packages.dev);
+  const _packagesListString = packages.regular.concat(" ").concat(packages.dev);
   // consola.start(`Installing packages: ${packagesListString}...`);
 
   const installCommand = pmType === "npm" ? "install" : "add";
@@ -128,7 +133,7 @@ export const readConfigFile = (): (Config & { rootPath: string }) | null => {
   const configJsonData = fs.readFileSync(configPath, "utf-8");
 
   // Parse package.json content
-  let config: Config = JSON.parse(configJsonData);
+  const config: Config = JSON.parse(configJsonData);
 
   const rootPath = config.hasSrc ? "src/" : "";
   return { ...config, rootPath };
@@ -139,17 +144,15 @@ export const addPackageToConfig = (packageName: AvailablePackage) => {
   updateConfigFile({ packages: [...config?.packages, packageName] });
 };
 
-export const wrapInParenthesis = (string: string) => {
-  return "(" + string + ")";
-};
+export const wrapInParenthesis = (string: string) => `(${string})`;
 
 // shadcn specific utils
 
 export const pmInstallCommand = {
-  pnpm: "pnpm",
-  npm: "npx",
-  yarn: "npx",
   bun: "bunx",
+  npm: "npx",
+  pnpm: "pnpm",
+  yarn: "npx",
 };
 
 export async function installShadcnUIComponents(
@@ -207,38 +210,40 @@ export const updateConfigFileAfterUpdate = () => {
   if (orm === undefined || auth === undefined) {
     const updatedOrm = packages.includes("drizzle") ? "drizzle" : null;
     const updatedAuth = packages.includes("next-auth") ? "next-auth" : null;
-    updateConfigFile({ orm: updatedOrm, auth: updatedAuth });
+    updateConfigFile({ auth: updatedAuth, orm: updatedOrm });
     consola.info("Config file updated.");
   } else {
     consola.info("Config file already up to date.");
   }
 };
 
-type T3Deltas = {
+interface T3Deltas {
   alias: string;
-  trpcRootDir: string;
   createRouterInvokcation: string;
-  rootRouterRelativePath: string;
   rootRouterName: string;
-};
+  rootRouterRelativePath: string;
+  trpcRootDir: string;
+}
 export const getFileLocations = (): T3Deltas => {
   const { t3 } = readConfigFile();
   const t3Locations: T3Deltas = {
     alias: "~",
-    trpcRootDir: "server/api/",
     createRouterInvokcation: "createTRPCRouter",
-    rootRouterRelativePath: "root.ts",
     rootRouterName: "root.ts",
+    rootRouterRelativePath: "root.ts",
+    trpcRootDir: "server/api/",
   };
   const regularLocations: T3Deltas = {
     alias: "@",
-    trpcRootDir: "lib/server/",
     createRouterInvokcation: "router",
-    rootRouterRelativePath: "routers/_app.ts",
     rootRouterName: "_app.ts",
+    rootRouterRelativePath: "routers/_app.ts",
+    trpcRootDir: "lib/server/",
   };
-  if (t3) return t3Locations;
-  else return regularLocations;
+  if (t3) {
+    return t3Locations;
+  }
+  return regularLocations;
 };
 
 type TAnalyticsEvent = "init_config" | "add_package" | "generate";
@@ -248,24 +253,22 @@ export const sendEvent = async (
   data: Record<any, any>
 ) => {
   const config = readConfigFile();
-  if (config.analytics === false) return;
+  if (config.analytics === false) {
+    return;
+  }
   const url = "https://kirimase-proxy-analytics.vercel.app";
   // const url = "http://localhost:3000";
   try {
-    await fetch(url + `/api/send-event`, {
-      method: "POST",
+    await fetch(`${url}/api/send-event`, {
+      body: JSON.stringify({
+        config,
+        data,
+        event,
+      }),
       headers: {
         "x-request-from": "kirimase",
       },
-      body: JSON.stringify({
-        event,
-        config,
-        data,
-      }),
+      method: "POST",
     });
-  } catch (e) {
-    // do nothing
-    // console.error(e);
-    return;
-  }
+  } catch {}
 };

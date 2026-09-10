@@ -1,23 +1,18 @@
-import { DBField } from "../../../types.js";
 import pluralize from "pluralize";
-import {
-  createFile,
-  getFileContents,
-  installShadcnUIComponents,
-  readConfigFile,
-} from "../../../utils.js";
+import type { DBField } from "../../../types.js";
+import { createFile, getFileContents, readConfigFile } from "../../../utils.js";
 import { addPackage } from "../../add/index.js";
+import { addToShadcnComponentList } from "../../add/utils.js";
 import { formatFilePath, getFilePaths } from "../../filePaths/index.js";
-import { Schema } from "../types.js";
+import type { Schema } from "../types.js";
 import {
   defaultValueMappings,
   formatTableName,
   toCamelCase,
   toNormalEnglish,
 } from "../utils.js";
-import { addToShadcnComponentList } from "../../add/utils.js";
 
-export const scaffoldViewsAndComponents = async (schema: Schema) => {
+export const scaffoldViewsAndComponents = (schema: Schema) => {
   const { hasSrc, packages } = readConfigFile();
   const {
     tableNameCamelCase,
@@ -56,21 +51,24 @@ export const scaffoldViewsAndComponents = async (schema: Schema) => {
     // install shadcn packages (button, dialog, form, input, label) - exec script: pnpm dlx shadcn-ui@latest add _
     // const baseComponents = ["button", "dialog", "form", "input", "label"];
     const baseComponents = ["dialog", "form"];
-    schema.fields.filter((field) => field.type === "boolean").length > 0
-      ? baseComponents.push("checkbox")
-      : null;
-    schema.fields.filter((field) => field.type.toLowerCase() === "references")
-      .length > 0
-      ? baseComponents.push("select")
-      : null;
-    schema.fields.filter(
-      (field) =>
-        field.type === "date" ||
-        field.type === "timestamp" ||
-        field.type === "DateTime"
-    ).length > 0
-      ? baseComponents.push("popover", "calendar")
-      : null;
+    if (schema.fields.some((field) => field.type === "boolean")) {
+      baseComponents.push("checkbox");
+    }
+    if (
+      schema.fields.some((field) => field.type.toLowerCase() === "references")
+    ) {
+      baseComponents.push("select");
+    }
+    if (
+      schema.fields.some(
+        (field) =>
+          field.type === "date" ||
+          field.type === "timestamp" ||
+          field.type === "DateTime"
+      )
+    ) {
+      baseComponents.push("popover", "calendar");
+    }
     addToShadcnComponentList(baseComponents);
     // await installShadcnUIComponents(baseComponents);
   } else {
@@ -227,12 +225,13 @@ const EmptyState = () => {
 };
 
 const createformInputComponent = (field: DBField): string => {
-  if (field.type.toLowerCase() == "boolean")
+  if (field.type.toLowerCase() === "boolean") {
     return `<br />
             <FormControl>
               <Checkbox {...field} checked={!!field.value} onCheckedChange={field.onChange} value={""} />
             </FormControl>`;
-  if (field.type.toLowerCase() == "references") {
+  }
+  if (field.type.toLowerCase() === "references") {
     const referencesSingular = pluralize.singular(
       toCamelCase(field.references)
     );
@@ -263,10 +262,10 @@ const createformInputComponent = (field: DBField): string => {
 `;
   }
   if (
-    field.type == "date" ||
-    field.type == "timestamp" ||
-    field.type == "DateTime"
-  )
+    field.type === "date" ||
+    field.type === "timestamp" ||
+    field.type === "DateTime"
+  ) {
     return `<br />
               <Popover>
                 <PopoverTrigger asChild>
@@ -300,6 +299,7 @@ const createformInputComponent = (field: DBField): string => {
                 </PopoverContent>
               </Popover>
 `;
+  }
   return `<FormControl>
             <Input {...field} />
           </FormControl>

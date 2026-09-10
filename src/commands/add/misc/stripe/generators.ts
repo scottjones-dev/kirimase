@@ -1,4 +1,4 @@
-import { AuthType, DBType } from "../../../../types.js";
+import type { AuthType, DBType } from "../../../../types.js";
 import { getFileLocations, readConfigFile } from "../../../../utils.js";
 import {
   formatFilePath,
@@ -7,15 +7,13 @@ import {
 } from "../../../filePaths/index.js";
 import { AuthSubTypeMapping } from "../../utils.js";
 
-export const generateStripeIndexTs = () => {
-  return `import Stripe from "stripe";
+export const generateStripeIndexTs = () => `import Stripe from "stripe";
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", {
   apiVersion: "2024-06-20",
   typescript: true,
 });
 `;
-};
 
 export const generateStripeSubscriptionTsOld = () => {
   const { orm } = readConfigFile();
@@ -24,7 +22,8 @@ export const generateStripeSubscriptionTsOld = () => {
   let userSelect: string;
   switch (orm) {
     case "drizzle":
-      userSelect = `db.select().from(users).where(eq( users.id, session.user.id ))`;
+      userSelect =
+        "db.select().from(users).where(eq( users.id, session.user.id ))";
       break;
     case "prisma":
       userSelect = `db.user.findFirst({
@@ -32,6 +31,9 @@ export const generateStripeSubscriptionTsOld = () => {
       id: session.user.id,
     },
   });`;
+      break;
+    default:
+      throw new Error("Stripe subscriptions require an ORM");
   }
 
   return `import { storeSubscriptionPlans } from "${formatFilePath(
@@ -102,8 +104,8 @@ export async function getUserSubscriptionPlan() {
 `;
 };
 
-export const generateConfigSubscriptionsTs = () => {
-  return `export interface SubscriptionPlan {
+export const generateConfigSubscriptionsTs =
+  () => `export interface SubscriptionPlan {
   id: string;
   name: string;
   description: string;
@@ -139,12 +141,11 @@ export const storeSubscriptionPlans: SubscriptionPlan[] = [
   },
 ];
 `;
-};
 
 export const generateBillingCard = () => {
   const { componentLib, alias } = readConfigFile();
   const { shared } = getFilePaths();
-  if (componentLib == "shadcn-ui") {
+  if (componentLib === "shadcn-ui") {
     return `"use client";
 import {
   AccountCard,
@@ -222,8 +223,8 @@ export default function PlanSettings({
   );
 }
 `;
-  } else {
-    return `"use client";
+  }
+  return `"use client";
 import {
   AccountCard,
   AccountCardBody,
@@ -297,7 +298,6 @@ export default function PlanSettings({
   );
 }
 `;
-  }
 };
 
 export const generateManageSubscriptionButton = () => {
@@ -371,8 +371,8 @@ export function ManageUserSubscriptionButton({
   );
 }
 `;
-  } else {
-    return `"use client";
+  }
+  return `"use client";
 
 import React from "react";
 import { Loader2 } from "lucide-react";
@@ -441,11 +441,9 @@ export function ManageUserSubscriptionButton({
   );
 }
 `;
-  }
 };
 
-export const generateSuccessToast = () => {
-  return `"use client";
+export const generateSuccessToast = () => `"use client";
 
 import { toast } from "sonner";
 import { useSearchParams } from "next/navigation";
@@ -464,7 +462,6 @@ export default function SuccessToast() {
   return null;
 }
 `;
-};
 
 export const generateAccountPage = () => {
   const { shared, stripe } = getFilePaths();
@@ -626,20 +623,20 @@ export default async function Billing() {
   );
 }
 `;
-  } else {
-    return `import { ManageUserSubscriptionButton } from "./ManageSubscription";
+  }
+  return `import { ManageUserSubscriptionButton } from "./ManageSubscription";
 import { storeSubscriptionPlans } from "${formatFilePath(
-      stripe.configSubscription,
-      { prefix: "alias", removeExtension: true }
-    )}";
+    stripe.configSubscription,
+    { prefix: "alias", removeExtension: true }
+  )}";
 import { checkAuth, getUserAuth } from "${formatFilePath(
-      shared.auth.authUtils,
-      { prefix: "alias", removeExtension: true }
-    )}";
+    shared.auth.authUtils,
+    { prefix: "alias", removeExtension: true }
+  )}";
 import { getUserSubscriptionPlan } from "${formatFilePath(
-      stripe.stripeSubscription,
-      { prefix: "alias", removeExtension: true }
-    )}";
+    stripe.stripeSubscription,
+    { prefix: "alias", removeExtension: true }
+  )}";
 import { CheckCircle2Icon } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -747,7 +744,6 @@ export default async function Billing() {
   );
 }
 `;
-  }
 };
 
 export const generateStripeWebhookOld = () => {
@@ -755,12 +751,14 @@ export const generateStripeWebhookOld = () => {
   const { shared, stripe } = getFilePaths();
   const dbIndex = getDbIndexPath();
 
-  let dbCalls = { one: "", two: "", three: "" };
+  const dbCalls = { one: "", three: "", two: "" };
 
   switch (orm) {
     case "drizzle":
-      dbCalls.one = `db.update(users).set(updatedData).where(eq(users.id, session.metadata.userId))`;
-      dbCalls.two = `db.update(users).set(updatedData).where(eq(users.stripeCustomerId, session.customer))`;
+      dbCalls.one =
+        "db.update(users).set(updatedData).where(eq(users.id, session.metadata.userId))";
+      dbCalls.two =
+        "db.update(users).set(updatedData).where(eq(users.stripeCustomerId, session.customer))";
       dbCalls.three = `db.update(users).set({
         stripePriceId: subscription.items.data[0].price.id,
         stripeCurrentPeriodEnd: new Date(
@@ -789,6 +787,8 @@ export const generateStripeWebhookOld = () => {
       },
     });`;
       break;
+    default:
+      throw new Error("Stripe webhooks require an ORM");
   }
 
   return `import { db } from "${formatFilePath(dbIndex, {
@@ -961,7 +961,7 @@ export const subscriptions = pgTable(
     userId: varchar("user_id", { length: 255 })
       .unique()${
         authSubtype === "self-hosted"
-          ? `\n      .references(() => users.id)`
+          ? "\n      .references(() => users.id)"
           : ""
       },
     stripeCustomerId: varchar("stripe_customer_id", { length: 255 }).unique(),
@@ -1020,7 +1020,7 @@ export const subscriptions = sqliteTable(
     userId: text("user_id")
       .unique()${
         authSubtype === "self-hosted"
-          ? `\n      .references(() => users.id)`
+          ? "\n      .references(() => users.id)"
           : ""
       },
     stripeCustomerId: text("stripe_customer_id").unique(),
@@ -1037,15 +1037,17 @@ export const subscriptions = sqliteTable(
   }
 );
 `;
+    default:
+      throw new Error(`Unsupported database driver: ${driver}`);
   }
 };
 
 export const generateStripeWebhook = () => {
   const { orm } = readConfigFile();
-  const { shared, stripe } = getFilePaths();
+  const { stripe } = getFilePaths();
   const dbIndex = getDbIndexPath();
 
-  let dbCalls = { one: "", two: "", three: "" };
+  const dbCalls = { one: "", three: "", two: "" };
 
   switch (orm) {
     case "drizzle":
@@ -1102,6 +1104,8 @@ export const generateStripeWebhook = () => {
       },
     });`;
       break;
+    default:
+      throw new Error("Stripe webhooks require an ORM");
   }
 
   return `import { db } from "${formatFilePath(dbIndex, {
@@ -1208,6 +1212,9 @@ export const generateStripeSubscriptionTs = () => {
       userId: session.user.id,
     },
   });`;
+      break;
+    default:
+      throw new Error("Stripe subscriptions require an ORM");
   }
 
   return `import { storeSubscriptionPlans } from "${formatFilePath(

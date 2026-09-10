@@ -1,4 +1,4 @@
-import { DBProvider, DBType, ORMType } from "../../../../types.js";
+import type { DBProvider, DBType, ORMType } from "../../../../types.js";
 import { readConfigFile } from "../../../../utils.js";
 import {
   formatFilePath,
@@ -7,8 +7,8 @@ import {
 } from "../../../filePaths/index.js";
 import {
   generateDrizzleAdapterDriverMappings,
-  LuciaAdapterInfo,
   generatePrismaAdapterDriverMappings,
+  type LuciaAdapterInfo,
 } from "./utils.js";
 
 const generateViewsAndComponents = (withShadCn: boolean) => {
@@ -23,11 +23,11 @@ const generateViewsAndComponents = (withShadCn: boolean) => {
   const updatedSignOutButton = generateUpdatedSignoutButton(withShadCn);
 
   return {
-    signUpPage,
-    signInPage,
     authFormErrorComponent,
     homePage,
     loadingPage,
+    signInPage,
+    signUpPage,
     updatedSignOutButton,
   };
 };
@@ -78,10 +78,10 @@ import { useFormStatus } from "react-dom";
 
 import { signUpAction } from "${formatFilePath(lucia.usersActions, { prefix: "alias", removeExtension: true })}";
 
-import { Label } from "${formatFilePath(`components/ui/label`, { prefix: "alias", removeExtension: false })}";
-import { Input } from "${formatFilePath(`components/ui/input`, { prefix: "alias", removeExtension: false })}";
-import { Button } from "${formatFilePath(`components/ui/button`, { prefix: "alias", removeExtension: false })}";
-import AuthFormError from "${formatFilePath(`components/auth/AuthFormError`, { prefix: "alias", removeExtension: false })}";
+import { Label } from "${formatFilePath("components/ui/label", { prefix: "alias", removeExtension: false })}";
+import { Input } from "${formatFilePath("components/ui/input", { prefix: "alias", removeExtension: false })}";
+import { Button } from "${formatFilePath("components/ui/button", { prefix: "alias", removeExtension: false })}";
+import AuthFormError from "${formatFilePath("components/auth/AuthFormError", { prefix: "alias", removeExtension: false })}";
 
 
 export default function SignUpPage() {
@@ -125,8 +125,8 @@ const SubmitButton = () => {
   );
 };
 `;
-  } else {
-    return `
+  }
+  return `
 "use client";
 
 import Link from "next/link";
@@ -201,7 +201,6 @@ const SubmitButton = () => {
 };
 
 `;
-  }
 };
 
 const generateSignInPage = (withShadCn: boolean) => {
@@ -215,10 +214,10 @@ import { useFormStatus } from "react-dom";
 
 import { signInAction } from "${formatFilePath(lucia.usersActions, { prefix: "alias", removeExtension: true })}";
 
-import { Label } from "${formatFilePath(`components/ui/label`, { prefix: "alias", removeExtension: false })}";
-import { Input } from "${formatFilePath(`components/ui/input`, { prefix: "alias", removeExtension: false })}";
-import { Button } from "${formatFilePath(`components/ui/button`, { prefix: "alias", removeExtension: false })}";
-import AuthFormError from "${formatFilePath(`components/auth/AuthFormError`, { prefix: "alias", removeExtension: false })}";
+import { Label } from "${formatFilePath("components/ui/label", { prefix: "alias", removeExtension: false })}";
+import { Input } from "${formatFilePath("components/ui/input", { prefix: "alias", removeExtension: false })}";
+import { Button } from "${formatFilePath("components/ui/button", { prefix: "alias", removeExtension: false })}";
+import AuthFormError from "${formatFilePath("components/auth/AuthFormError", { prefix: "alias", removeExtension: false })}";
 
 export default function SignInPage() {
   const [state, formAction] = useFormState(signInAction, {
@@ -265,8 +264,8 @@ const SubmitButton = () => {
     </Button>
   );
 };`;
-  } else {
-    return `"use client";
+  }
+  return `"use client";
 
 import Link from "next/link";
 import { useFormState } from "react-dom";
@@ -344,11 +343,10 @@ const SubmitButton = () => {
   );
 };
 `;
-  }
 };
 
-const generateAuthFormErrorComponent = () => {
-  return `export default function AuthFormError({ state }: { state: { error: string } }) {
+const generateAuthFormErrorComponent =
+  () => `export default function AuthFormError({ state }: { state: { error: string } }) {
   if (state.error)
     return (
       <div className="w-full p-4 bg-destructive my-4 text-destructive-foreground text-xs">
@@ -359,7 +357,6 @@ const generateAuthFormErrorComponent = () => {
   return null;
 }
 `;
-};
 
 const generateHomePage = () => {
   const { lucia, shared } = getFilePaths();
@@ -367,8 +364,8 @@ const generateHomePage = () => {
   return `import SignOutBtn from "${formatFilePath(
     lucia.signOutButtonComponent,
     {
-      removeExtension: true,
       prefix: "alias",
+      removeExtension: true,
     }
   )}";
 import { getUserAuth } from "${formatFilePath(shared.auth.authUtils, {
@@ -406,7 +403,7 @@ const generateUserServerActions = () => {
 import { revalidatePath } from "next/cache";
 import { redirect } from 'next/navigation'
 
-import { db } from "${formatFilePath(dbIndexPath, { removeExtension: true, prefix: "alias" })}";
+import { db } from "${formatFilePath(dbIndexPath, { prefix: "alias", removeExtension: true })}";
 
 import { Argon2id } from 'oslo/password'
 import { generateId } from 'lucia'
@@ -548,7 +545,7 @@ import { Argon2id } from "oslo/password";
 import { lucia, validateRequest } from "../auth/lucia";
 import { generateId } from "lucia";
 import { eq } from "drizzle-orm";
-import { db } from "${formatFilePath(dbIndexPath, { removeExtension: true, prefix: "alias" })}";
+import { db } from "${formatFilePath(dbIndexPath, { prefix: "alias", removeExtension: true })}";
 
 import {
   genericError,
@@ -687,9 +684,12 @@ const generateAuthDirFiles = (
   const DrizzleAdapterDriverMappings = generateDrizzleAdapterDriverMappings();
   const PrismaAdapterDriverMappings = generatePrismaAdapterDriverMappings();
 
-  if (orm === "drizzle")
+  if (orm === "drizzle") {
     mappings = DrizzleAdapterDriverMappings[dbType][provider];
-  if (orm === "prisma") mappings = PrismaAdapterDriverMappings;
+  }
+  if (orm === "prisma") {
+    mappings = PrismaAdapterDriverMappings;
+  }
 
   const utilsTs = `import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
@@ -836,7 +836,7 @@ export const validateRequest = cache(
 )
 `;
 
-  return { utilsTs, luciaTs };
+  return { luciaTs, utilsTs };
 };
 
 const generateUpdatedSignoutButton = (withShadcn: boolean) => {
@@ -865,8 +865,8 @@ const Btn = () => {
   );
 };
 `;
-  } else {
-    return `"use client";
+  }
+  return `"use client";
 
 import { useFormStatus } from "react-dom";
 import { signOutAction } from "${formatFilePath(lucia.usersActions, { prefix: "alias", removeExtension: true })}";
@@ -892,11 +892,10 @@ const Btn = () => {
   );
 };
 `;
-  }
 };
 
 export const luciaGenerators = {
-  generateViewsAndComponents,
   generateAuthDirFiles,
   generateUserServerActions,
+  generateViewsAndComponents,
 };

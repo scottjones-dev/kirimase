@@ -1,31 +1,25 @@
-import { consola } from "consola";
-import {
-  createFile,
-  installShadcnUIComponents,
-  readConfigFile,
-} from "../../../../utils.js";
-import { addToShadcnComponentList } from "../../utils.js";
-import {
-  createAccountApiTs,
-  createAccountCardComponent,
-  createAccountPage,
-  createUserSettingsComponent,
-  createUpdateNameCard,
-  createUpdateEmailCard,
-  createNavbar,
-  createSignOutBtn,
-} from "./generators.js";
-import { AuthType, ORMType } from "../../../../types.js";
+import type { AuthType } from "../../../../types.js";
+import { createFile, readConfigFile } from "../../../../utils.js";
 import { formatFilePath, getFilePaths } from "../../../filePaths/index.js";
+import { addToShadcnComponentList } from "../../utils.js";
 import {
   enableSessionInContext,
   updateTrpcTs,
 } from "../next-auth/generators.js";
+import {
+  createAccountApiTs,
+  createAccountCardComponent,
+  createAccountPage,
+  createSignOutBtn,
+  createUpdateEmailCard,
+  createUpdateNameCard,
+  createUserSettingsComponent,
+} from "./generators.js";
 
 export const createAccountSettingsPage = async () => {
   const { orm, rootPath, componentLib, auth } = readConfigFile();
   const { shared } = getFilePaths();
-  const withShadCn = componentLib === "shadcn-ui" ? true : false;
+  const withShadCn = componentLib === "shadcn-ui";
   // create account api - clerk has managed component so no need
   if (auth !== "clerk" && auth !== "lucia") {
     createFile(
@@ -58,8 +52,8 @@ export const createAccountSettingsPage = async () => {
   await scaffoldAccountSettingsUI(rootPath, withShadCn, auth);
 };
 
-export const scaffoldAccountSettingsUI = async (
-  rootPath: string,
+export const scaffoldAccountSettingsUI = (
+  _rootPath: string,
   withShadCn: boolean,
   auth: AuthType
 ) => {
@@ -121,10 +115,8 @@ export const scaffoldAccountSettingsUI = async (
 
 export const updateTrpcWithSessionIfInstalled = () => {
   const { packages, t3 } = readConfigFile();
-  if (packages.includes("trpc")) {
-    if (!t3) {
-      updateTrpcTs();
-      enableSessionInContext();
-    }
+  if (packages.includes("trpc") && !t3) {
+    updateTrpcTs();
+    enableSessionInContext();
   }
 };

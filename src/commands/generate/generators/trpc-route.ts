@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import { consola } from "consola";
 import {
   createFile,
@@ -5,13 +6,13 @@ import {
   readConfigFile,
   replaceFile,
 } from "../../../utils.js";
-import { Schema } from "../types.js";
-import { formatTableName } from "../utils.js";
-import fs from "fs";
 import { formatFilePath, getFilePaths } from "../../filePaths/index.js";
+import type { Schema } from "../types.js";
+import { formatTableName } from "../utils.js";
 
-export const scaffoldTRPCRoute = async (schema: Schema) => {
-  const { hasSrc } = readConfigFile();
+const SINGLE_ROUTER_PATTERN = /router\({ \w+: \w+Router }\)/;
+
+export const scaffoldTRPCRoute = (schema: Schema) => {
   const { tableName } = schema;
   const { tableNameCamelCase } = formatTableName(tableName);
   const { trpc } = getFilePaths();
@@ -52,7 +53,7 @@ export const scaffoldTRPCRoute = async (schema: Schema) => {
 // }
 
 export function updateTRPCRouter(routerName: string): void {
-  const { hasSrc, t3, rootPath } = readConfigFile();
+  const { t3, rootPath } = readConfigFile();
   const { trpcRootDir, rootRouterRelativePath } = getFileLocations();
   const filePath = rootPath.concat(`${trpcRootDir}${rootRouterRelativePath}`);
 
@@ -85,12 +86,12 @@ export function updateTRPCRouter(routerName: string): void {
         0,
         beforeRouterBlock
       )}router({ ${routerName}: ${routerName}Router })${afterRouterBlock}`;
-    } else if (withNewImport.match(/router\({ \w+: \w+Router }\)/)) {
+    } else if (SINGLE_ROUTER_PATTERN.test(withNewImport)) {
       // Single-line router
-      const singleRouterMatch = withNewImport.match(
-        /router\({ \w+: \w+Router }\)/
-      );
-      const oldRouter = singleRouterMatch[0];
+      const [oldRouter] = withNewImport.match(SINGLE_ROUTER_PATTERN) ?? [];
+      if (!oldRouter) {
+        throw new Error("Unable to locate the root tRPC router");
+      }
       const newRouter = oldRouter.replace(
         "}",
         `,\n  ${routerName}: ${routerName}Router,\n  }`
@@ -125,7 +126,6 @@ const generateRouteContent = (schema: Schema) => {
     tableNameCamelCase,
     tableNameCapitalised,
   } = formatTableName(tableName);
-  const { alias } = readConfigFile();
   const { createRouterInvokcation } = getFileLocations();
   const { shared, trpc } = getFilePaths();
 

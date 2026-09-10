@@ -1,4 +1,4 @@
-import { AuthType, ORMType } from "../../../../types.js";
+import type { AuthType, ORMType } from "../../../../types.js";
 import { readConfigFile } from "../../../../utils.js";
 import {
   formatFilePath,
@@ -49,8 +49,8 @@ import { AccountCard, AccountCardFooter, AccountCardBody } from "./AccountCard";
 import { updateUser } from "${formatFilePath(lucia.usersActions, { prefix: "alias", removeExtension: true })}";
 
 import { toast } from "sonner";
-import { Input } from "${formatFilePath(`components/ui/input`, { prefix: "alias", removeExtension: false })}";
-import { Button } from "${formatFilePath(`components/ui/button`, { prefix: "alias", removeExtension: false })}";
+import { Input } from "${formatFilePath("components/ui/input", { prefix: "alias", removeExtension: false })}";
+import { Button } from "${formatFilePath("components/ui/button", { prefix: "alias", removeExtension: false })}";
 
 export default function UpdateNameCard({ name }: { name: string }) {
   const [state, formAction] = useFormState(updateUser, {
@@ -87,8 +87,8 @@ const Submit = () => {
   return <Button disabled={pending}>Update Name</Button>;
 };
 `;
-    } else
-      return `"use client";
+    }
+    return `"use client";
 import { AccountCard, AccountCardFooter, AccountCardBody } from "./AccountCard";
 import { Button } from "${alias}/components/ui/button";
 import { Input } from "${alias}/components/ui/input";
@@ -145,9 +145,9 @@ export default function UpdateNameCard({ name }: { name: string }) {
   );
 }
 `;
-  } else {
-    if (serverActions) {
-      return `"use client";
+  }
+  if (serverActions) {
+    return `"use client";
 
 import { useFormState, useFormStatus } from "react-dom";
 import { useEffect } from "react";
@@ -201,8 +201,8 @@ const SubmitBtn = () => {
   );
 };
 `;
-    } else {
-      return `"use client";
+  }
+  return `"use client";
 import { AccountCard, AccountCardFooter, AccountCardBody } from "./AccountCard";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -257,8 +257,6 @@ export default function UpdateNameCard({ name }: { name: string }) {
   );
 }
 `;
-    }
-  }
 };
 
 export const createUpdateEmailCard = (
@@ -279,8 +277,8 @@ import { AccountCard, AccountCardFooter, AccountCardBody } from "./AccountCard";
 import { updateUser } from "${formatFilePath(lucia.usersActions, { prefix: "alias", removeExtension: true })}";
 
 import { toast } from "sonner";
-import { Input } from "${formatFilePath(`components/ui/input`, { prefix: "alias", removeExtension: false })}";
-import { Button } from "${formatFilePath(`components/ui/button`, { prefix: "alias", removeExtension: false })}";
+import { Input } from "${formatFilePath("components/ui/input", { prefix: "alias", removeExtension: false })}";
+import { Button } from "${formatFilePath("components/ui/button", { prefix: "alias", removeExtension: false })}";
 
 export default function UpdateEmailCard({ email }: { email: string }) {
   const [state, formAction] = useFormState(updateUser, {
@@ -318,8 +316,8 @@ const Submit = () => {
 };
 
 `;
-    } else {
-      return `import { AccountCard, AccountCardFooter, AccountCardBody } from "./AccountCard";
+    }
+    return `import { AccountCard, AccountCardFooter, AccountCardBody } from "./AccountCard";
 import { Button } from "${alias}/components/ui/button";
 import { Input } from "${alias}/components/ui/input";
 import { toast } from "sonner";
@@ -376,10 +374,9 @@ export default function UpdateEmailCard({ email }: { email: string }) {
   );
 }
 `;
-    }
-  } else {
-    if (serverActions) {
-      return `"use client";
+  }
+  if (serverActions) {
+    return `"use client";
 
 import { useFormState, useFormStatus } from "react-dom";
 import { useEffect } from "react";
@@ -433,8 +430,8 @@ const SubmitBtn = () => {
   );
 };
 `;
-    } else {
-      return `import { AccountCard, AccountCardFooter, AccountCardBody } from "./AccountCard";
+  }
+  return `import { AccountCard, AccountCardFooter, AccountCardBody } from "./AccountCard";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 
@@ -489,8 +486,6 @@ export default function UpdateEmailCard({ email }: { email: string }) {
   );
 }
 `;
-    }
-  }
 };
 
 export const createAccountCardComponent = (withShadCn = false) => {
@@ -542,8 +537,8 @@ export function AccountCardFooter({
   );
 }
 `;
-  } else {
-    return `interface AccountCardProps {
+  }
+  return `interface AccountCardProps {
   params: {
     header: string;
     description: string;
@@ -587,7 +582,6 @@ export function AccountCardFooter({
   );
 }
 `;
-  }
 };
 
 export const createAccountPage = (withStripe = false) => {
@@ -620,7 +614,7 @@ export default async function Account() {
       <h1 className="text-2xl font-semibold my-4">Account</h1>
       <div className="space-y-4">${
         withStripe
-          ? `\n        <PlanSettings subscriptionPlan={subscriptionPlan} session={session} />`
+          ? "\n        <PlanSettings subscriptionPlan={subscriptionPlan} session={session} />"
           : ""
       }
         <UserSettings session={session} />
@@ -689,7 +683,7 @@ export async function PUT(request: Request) {
 
 export const createNavbar = (
   withShadcn: boolean,
-  usingClerk = false,
+  usingClerk,
   auth: AuthType
 ) => {
   const { shared, "next-auth": nextAuth } = getFilePaths();
@@ -706,6 +700,8 @@ export const createNavbar = (
     case "kinde":
       logOutRoute = "/api/auth/logout";
       break;
+    default:
+      throw new Error(`Unsupported authentication type: ${auth}`);
   }
   if (withShadcn) {
     return `import { getUserAuth } from "${formatFilePath(
@@ -807,14 +803,14 @@ export default async function Navbar() {
   } else return null;
 }
 `;
-  } else {
-    return `import { getUserAuth } from "${formatFilePath(
-      shared.auth.authUtils,
-      { prefix: "alias", removeExtension: true }
-    )}";
+  }
+  return `import { getUserAuth } from "${formatFilePath(shared.auth.authUtils, {
+    prefix: "alias",
+    removeExtension: true,
+  })}";
 import Link from "next/link";${
-      usingClerk ? `\nimport { UserButton } from "@clerk/nextjs";` : ""
-    }
+    usingClerk ? `\nimport { UserButton } from "@clerk/nextjs";` : ""
+  }
 
 export default async function Navbar() {
   const { session } = await getUserAuth();
@@ -840,11 +836,9 @@ export default async function Navbar() {
   } else return null;
 }
 `;
-  }
 };
 
-export const createSignOutBtn = () => {
-  return `"use client";
+export const createSignOutBtn = () => `"use client";
 
 import { useRouter } from "next/navigation";
 
@@ -869,4 +863,3 @@ export default function SignOutBtn() {
   );
 }
 `;
-};

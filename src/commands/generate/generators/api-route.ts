@@ -1,7 +1,7 @@
-import { DBType } from "../../../types.js";
+import type { DBType } from "../../../types.js";
 import { createFile, readConfigFile } from "../../../utils.js";
 import { formatFilePath, getFilePaths } from "../../filePaths/index.js";
-import { Schema } from "../types.js";
+import type { Schema } from "../types.js";
 import { formatTableName, toCamelCase } from "../utils.js";
 
 export const scaffoldAPIRoute = (schema: Schema) => {

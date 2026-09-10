@@ -1,6 +1,6 @@
-import { Separator, checkbox, select, confirm } from "@inquirer/prompts";
-import { Packages } from "./utils.js";
-import {
+import { checkbox, confirm, Separator, select } from "@inquirer/prompts";
+import { consola } from "consola";
+import type {
   AuthType,
   AvailablePackage,
   ComponentLibType,
@@ -8,55 +8,46 @@ import {
   DBType,
   InitOptions,
   ORMType,
-  PMType,
   PackageChoice,
+  PMType,
 } from "../../types.js";
-import { DBProviders } from "../init/utils.js";
-import { AuthProvider, AuthProviders } from "./auth/next-auth/utils.js";
 import { readConfigFile } from "../../utils.js";
-import { consola } from "consola";
+import { DBProviders } from "../init/utils.js";
+import { type AuthProvider, AuthProviders } from "./auth/next-auth/utils.js";
+import { Packages } from "./utils.js";
 
 const nullOption = { name: "None", value: null };
 
-export const askComponentLib = async (options: InitOptions) => {
-  return (
-    options.componentLib ??
-    ((await select({
-      message: "Select a component library to use:",
-      choices: [...Packages.componentLib, new Separator(), nullOption],
-    })) as ComponentLibType | null)
-  );
-};
+export const askComponentLib = async (options: InitOptions) =>
+  options.componentLib ??
+  ((await select({
+    choices: [...Packages.componentLib, new Separator(), nullOption],
+    message: "Select a component library to use:",
+  })) as ComponentLibType | null);
 
-export const askOrm = async (options: InitOptions) => {
-  return (
-    options.orm ??
-    ((await select({
-      message: "Select an ORM to use:",
-      choices: [...Packages.orm, new Separator(), nullOption],
-    })) as ORMType | null)
-  );
-};
+export const askOrm = async (options: InitOptions) =>
+  options.orm ??
+  ((await select({
+    choices: [...Packages.orm, new Separator(), nullOption],
+    message: "Select an ORM to use:",
+  })) as ORMType | null);
 
-export const askDbType = async (options: InitOptions) => {
-  return (
-    options.db ??
-    ((await select({
-      message: "Please choose your DB type",
-      choices: [
-        { name: "Postgres", value: "pg" },
-        {
-          name: "MySQL",
-          value: "mysql",
-        },
-        {
-          name: "SQLite",
-          value: "sqlite",
-        },
-      ],
-    })) as DBType)
-  );
-};
+export const askDbType = async (options: InitOptions) =>
+  options.db ??
+  ((await select({
+    choices: [
+      { name: "Postgres", value: "pg" },
+      {
+        name: "MySQL",
+        value: "mysql",
+      },
+      {
+        name: "SQLite",
+        value: "sqlite",
+      },
+    ],
+    message: "Please choose your DB type",
+  })) as DBType);
 
 export const askDbProvider = async (
   options: InitOptions,
@@ -64,57 +55,47 @@ export const askDbProvider = async (
   ppm: PMType
 ) => {
   const dbProviders = DBProviders[dbType].filter((p) => {
-    if (ppm === "bun") return p.value !== "better-sqlite3";
-    else return p.value !== "bun-sqlite";
+    if (ppm === "bun") {
+      return p.value !== "better-sqlite3";
+    }
+    return p.value !== "bun-sqlite";
   });
   return (
     options.dbProvider ??
     ((await select({
-      message: "Please choose your DB Provider",
       choices: dbProviders,
+      message: "Please choose your DB Provider",
     })) as DBProvider)
   );
 };
 
-export const askPscale = async (options: InitOptions) => {
-  return (
-    options.dbProvider ??
-    (await confirm({
-      message: "Are you using PlanetScale?",
-      default: false,
-    }))
-  );
-};
+export const askPscale = async (options: InitOptions) =>
+  options.dbProvider ??
+  (await confirm({
+    default: false,
+    message: "Are you using PlanetScale?",
+  }));
 
-export const askExampleModel = async (options: InitOptions) => {
-  return (
-    options.includeExample ??
-    (await confirm({
-      message:
-        "Would you like to include an example model? (suggested for new users)",
-      default: false,
-    }))
-  );
-};
+export const askExampleModel = async (options: InitOptions) =>
+  options.includeExample ??
+  (await confirm({
+    default: false,
+    message:
+      "Would you like to include an example model? (suggested for new users)",
+  }));
 
-export const askAuth = async (options: InitOptions) => {
-  return (
-    options.auth ??
-    ((await select({
-      message: "Select an authentication package to use:",
-      choices: [...Packages.auth, new Separator(), nullOption],
-    })) as AuthType | null)
-  );
-};
+export const askAuth = async (options: InitOptions) =>
+  options.auth ??
+  ((await select({
+    choices: [...Packages.auth, new Separator(), nullOption],
+    message: "Select an authentication package to use:",
+  })) as AuthType | null);
 
-export const askAuthProvider = async () => {
-  return (await checkbox({
+export const askAuthProvider = async () =>
+  (await checkbox({
+    choices: Object.keys(AuthProviders).map((p) => ({ name: p, value: p })),
     message: "Select a provider to add",
-    choices: Object.keys(AuthProviders).map((p) => {
-      return { name: p, value: p };
-    }),
   })) as AuthProvider[];
-};
 
 export const askMiscPackages = async (
   existingPackages: AvailablePackage[],
@@ -132,7 +113,7 @@ export const askMiscPackages = async (
       (p) => !existingPackages.includes(p.value)
     );
   }
-  if (hasOrmAndAuth === false)
+  if (hasOrmAndAuth === false) {
     uninstalledPackages = uninstalledPackages.map((pkg) =>
       pkg.value === "stripe"
         ? {
@@ -141,14 +122,14 @@ export const askMiscPackages = async (
           }
         : pkg
     );
+  }
 
   if (uninstalledPackages.length > 0) {
     return await checkbox({
-      message: "Select any miscellaneous packages to add:",
       choices: uninstalledPackages,
+      message: "Select any miscellaneous packages to add:",
     });
-  } else {
-    consola.info("All available packages already installed.");
-    return [];
   }
+  consola.info("All available packages already installed.");
+  return [];
 };

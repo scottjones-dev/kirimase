@@ -1,10 +1,11 @@
+import fs from "node:fs";
+import chalk from "chalk";
 import { consola } from "consola";
-import {
+import type {
   AuthSubType,
   AuthType,
   AvailablePackage,
   InitOptions,
-  PMType,
   PackageType,
 } from "../../types.js";
 import {
@@ -13,11 +14,9 @@ import {
   readConfigFile,
   replaceFile,
 } from "../../utils.js";
-import fs from "fs";
 import { formatFilePath, getFilePaths } from "../filePaths/index.js";
-import { spinner } from "./index.js";
-import chalk from "chalk";
 import { AuthProviders } from "./auth/next-auth/utils.js";
+import { spinner } from "./index.js";
 
 export const Packages: {
   [key in PackageType]: {
@@ -26,22 +25,22 @@ export const Packages: {
     disabled?: boolean;
   }[];
 } = {
-  orm: [
-    { name: "Drizzle", value: "drizzle" },
-    { name: "Prisma", value: "prisma" },
-  ],
   auth: [
     { name: "Auth.js (NextAuth)", value: "next-auth" },
     { name: "Clerk", value: "clerk" },
     { name: "Lucia", value: "lucia" },
     { name: "Kinde", value: "kinde" },
   ],
+  componentLib: [{ name: "Shadcn UI (with next-themes)", value: "shadcn-ui" }],
   misc: [
     { name: "TRPC", value: "trpc" },
     { name: "Stripe", value: "stripe" },
     { name: "Resend", value: "resend" },
   ],
-  componentLib: [{ name: "Shadcn UI (with next-themes)", value: "shadcn-ui" }],
+  orm: [
+    { name: "Drizzle", value: "drizzle" },
+    { name: "Prisma", value: "prisma" },
+  ],
 };
 
 export const addContextProviderToRootLayout = (provider: "ThemeProvider") => {
@@ -62,6 +61,8 @@ export const addContextProviderToRootLayout = (provider: "ThemeProvider") => {
     case "ThemeProvider":
       importStatement = `import { ThemeProvider } from "${alias}/components/ThemeProvider";`;
       break;
+    default:
+      throw new Error(`Unsupported provider: ${provider}`);
   }
 
   // check if the provider already exists
@@ -148,7 +149,7 @@ export const addContextProviderToAppLayout = (
     case "TrpcProvider":
       importStatement = `import TrpcProvider from "${formatFilePath(
         trpc.trpcProvider,
-        { removeExtension: true, prefix: "alias" }
+        { prefix: "alias", removeExtension: true }
       )}";\nimport { cookies } from "next/headers";`;
       break;
     case "ShadcnToast":
@@ -169,6 +170,8 @@ export const addContextProviderToAppLayout = (
     case "ThemeProvider":
       importStatement = `import { ThemeProvider } from "${alias}/components/ThemeProvider";`;
       break;
+    default:
+      throw new Error(`Unsupported provider: ${provider}`);
   }
 
   // check if the provider already exists
@@ -179,9 +182,9 @@ export const addContextProviderToAppLayout = (
   const modifiedImportContent = `${beforeImport}${importStatement}\n${afterImport}`;
 
   const navbarExists = fileContent.includes("<Navbar />");
-  const rootChildrenText = !navbarExists
-    ? "{children}"
-    : `<div className="flex h-screen">\n<Sidebar />\n<main className="flex-1 md:p-8 pt-2 p-8 overflow-y-auto">\n<Navbar />\n{children}\n</main>\n</div>`;
+  const rootChildrenText = navbarExists
+    ? `<div className="flex h-screen">\n<Sidebar />\n<main className="flex-1 md:p-8 pt-2 p-8 overflow-y-auto">\n<Navbar />\n{children}\n</main>\n</div>`
+    : "{children}";
   let replacementText = "";
   switch (provider) {
     case "ShadcnToast":
@@ -198,9 +201,9 @@ export const addContextProviderToAppLayout = (
       break;
   }
 
-  const searchValue = !navbarExists
-    ? "{children}"
-    : `<div className="flex h-screen">\n<Sidebar />\n<main className="flex-1 md:p-8 pt-2 p-8 overflow-y-auto">\n<Navbar />\n{children}\n</main>\n</div>`;
+  const searchValue = navbarExists
+    ? `<div className="flex h-screen">\n<Sidebar />\n<main className="flex-1 md:p-8 pt-2 p-8 overflow-y-auto">\n<Navbar />\n{children}\n</main>\n</div>`
+    : "{children}";
   const newLayoutContent = modifiedImportContent.replace(
     searchValue,
     replacementText
@@ -219,7 +222,9 @@ export const addContextProviderToAuthLayout = (
   const path = `${hasSrc ? "src/" : ""}app/(auth)/layout.tsx`;
 
   const pathExists = fs.existsSync(path);
-  if (!pathExists) return;
+  if (!pathExists) {
+    return;
+  }
   const fileContent = fs.readFileSync(path, "utf-8");
 
   // Add import statement after the last import
@@ -242,7 +247,7 @@ export const addContextProviderToAuthLayout = (
     case "TrpcProvider":
       importStatement = `import TrpcProvider from "${formatFilePath(
         trpc.trpcProvider,
-        { removeExtension: true, prefix: "alias" }
+        { prefix: "alias", removeExtension: true }
       )}";\nimport { cookies } from "next/headers";`;
       break;
     case "ShadcnToast":
@@ -251,6 +256,8 @@ export const addContextProviderToAuthLayout = (
     case "ClerkProvider":
       importStatement = 'import { ClerkProvider } from "@clerk/nextjs";';
       break;
+    default:
+      throw new Error(`Unsupported provider: ${provider}`);
   }
 
   // check if the provider already exists
@@ -285,13 +292,13 @@ export const addContextProviderToAuthLayout = (
 export const AuthSubTypeMapping: Record<AuthType, AuthSubType> = {
   clerk: "managed",
   kinde: "managed",
-  "next-auth": "self-hosted",
   lucia: "managed",
+  "next-auth": "self-hosted",
 };
 
 const installList: { regular: string[]; dev: string[] } = {
-  regular: [],
   dev: [],
+  regular: [],
 };
 
 export const addToInstallList = (packages: {
@@ -305,19 +312,21 @@ export const addToInstallList = (packages: {
 export const installPackagesFromList = async () => {
   const { preferredPackageManager } = readConfigFile();
 
-  if (installList.dev.length === 0 && installList.regular.length === 0) return;
+  if (installList.dev.length === 0 && installList.regular.length === 0) {
+    return;
+  }
 
   const dedupedList = {
-    regular: [...new Set(installList.regular)],
     dev: [...new Set(installList.dev)],
+    regular: [...new Set(installList.regular)],
   };
 
   const formattedInstallList = {
-    regular: dedupedList.regular
+    dev: dedupedList.dev
       .map((i) => i.trim())
       .join(" ")
       .trim(),
-    dev: dedupedList.dev
+    regular: dedupedList.regular
       .map((i) => i.trim())
       .join(" ")
       .trim(),
@@ -330,9 +339,47 @@ export const addToShadcnComponentList = (components: string[]) =>
   shadCnComponentList.push(...components);
 export const installShadcnComponentList = async () => {
   // consola.start("Installing shadcn components:", shadCnComponentList);
-  if (shadCnComponentList.length === 0) return;
+  if (shadCnComponentList.length === 0) {
+    return;
+  }
   await installShadcnUIComponents(shadCnComponentList);
   // consola.ready("Successfully installed components.");
+};
+
+const describeOrm = (options: InitOptions) => {
+  if (options.orm === "drizzle") {
+    return `${chalk.underline("ORM")}: Drizzle (using ${options.dbProvider})`;
+  }
+  return options.orm === "prisma" ? `${chalk.underline("ORM")}: Prisma` : null;
+};
+
+const describeAuth = (options: InitOptions) => {
+  if (options.auth === "next-auth") {
+    const providers = options.authProviders?.length
+      ? ` (with ${options.authProviders.join(", ")} providers)`
+      : "";
+    return `${chalk.underline("Authentication")}: Auth.js${providers}`;
+  }
+  const authNames = { clerk: "Clerk", kinde: "Kinde", lucia: "Lucia" } as const;
+  return options.auth
+    ? `${chalk.underline("Authentication")}: ${authNames[options.auth]}`
+    : null;
+};
+
+const describeSelectedPackages = (options: InitOptions) => {
+  const descriptions = [describeOrm(options), describeAuth(options)];
+  const miscDescriptions = {
+    resend: `${chalk.underline("Email")}: Resend`,
+    stripe: `${chalk.underline("Payments")}: Stripe`,
+    trpc: `${chalk.underline("RPC")}: tRPC`,
+  } as const;
+  for (const packageName of options.miscPackages ?? []) {
+    descriptions.push(miscDescriptions[packageName]);
+  }
+  if (options.componentLib === "shadcn-ui") {
+    descriptions.push(`${chalk.underline("Component Library")}: ShadcnUI`);
+  }
+  return descriptions.filter((description): description is string => Boolean(description));
 };
 
 export const printNextSteps = (
@@ -341,64 +388,14 @@ export const printNextSteps = (
   options?: InitOptions
 ) => {
   const config = readConfigFile();
-  const ppm = config?.preferredPackageManager ?? "npm";
-
-  const packagesInstalledList = [
-    ...(promptResponses.orm === "drizzle"
-      ? [
-          `${chalk.underline("ORM")}: Drizzle (using ${
-            promptResponses.dbProvider
-          })`,
-        ]
-      : []),
-    ...(promptResponses.orm === "prisma"
-      ? [`${chalk.underline("ORM")}: Prisma`]
-      : []),
-    ...(promptResponses.auth === "next-auth"
-      ? [
-          `${chalk.underline("Authentication")}: Auth.js ${
-            promptResponses.authProviders &&
-            promptResponses.authProviders.length > 0
-              ? `(with ${promptResponses.authProviders
-                  .map((p) => p)
-                  .join(", ")} providers)`
-              : ""
-          }`,
-        ]
-      : []),
-    ...(promptResponses.auth === "clerk"
-      ? [`${chalk.underline("Authentication")}: Clerk`]
-      : []),
-    ...(promptResponses.auth === "lucia"
-      ? [`${chalk.underline("Authentication")}: Lucia`]
-      : []),
-    ...(promptResponses.auth === "kinde"
-      ? [`${chalk.underline("Authentication")}: Kinde`]
-      : []),
-    ...(promptResponses.miscPackages &&
-    promptResponses.miscPackages.includes("stripe")
-      ? [`${chalk.underline("Payments")}: Stripe`]
-      : []),
-    ...(promptResponses.miscPackages &&
-    promptResponses.miscPackages.includes("resend")
-      ? [`${chalk.underline("Email")}: Resend`]
-      : []),
-    ...(promptResponses.miscPackages &&
-    promptResponses.miscPackages.includes("trpc")
-      ? [`${chalk.underline("RPC")}: tRPC`]
-      : []),
-    ...(promptResponses.componentLib === "shadcn-ui"
-      ? [`${chalk.underline("Component Library")}: ShadcnUI`]
-      : []),
-  ];
+  const ppm = config.preferredPackageManager ?? "npm";
+  const packagesInstalledList = describeSelectedPackages(promptResponses);
 
   const wouldHaveSecrets =
     promptResponses.orm ||
     promptResponses.auth ||
-    (promptResponses.miscPackages &&
-      promptResponses.miscPackages.includes("resend")) ||
-    (promptResponses.miscPackages &&
-      promptResponses.miscPackages.includes("stripe"));
+    promptResponses.miscPackages?.includes("resend") ||
+    promptResponses.miscPackages?.includes("stripe");
 
   const dbMigration = [
     ...(config.t3 === true ? [] : [`Run \`${ppm} run db:generate\``]),
@@ -413,12 +410,9 @@ export const printNextSteps = (
       promptResponses.auth !== "kinde") ||
     promptResponses.auth === "lucia" ||
     promptResponses.auth === "next-auth" ||
-    (promptResponses.miscPackages &&
-      promptResponses.miscPackages.includes("stripe"));
+    promptResponses.miscPackages?.includes("stripe");
 
-  const includesStripe =
-    promptResponses.miscPackages &&
-    promptResponses.miscPackages.includes("stripe");
+  const includesStripe = promptResponses.miscPackages?.includes("stripe");
 
   const nextSteps = [
     ...(wouldHaveSecrets ? ["Add Environment Variables to your .env"] : []),
@@ -431,9 +425,10 @@ export const printNextSteps = (
 
   const authProviderInstructions =
     promptResponses.authProviders && promptResponses.authProviders.length > 0
-      ? promptResponses.authProviders.map((provider) => {
-          return `${provider} auth: create credentials at ${AuthProviders[provider].website}\n  (redirect URI: /api/auth/callback/${provider})`;
-        })
+      ? promptResponses.authProviders.map(
+          (provider) =>
+            `${provider} auth: create credentials at ${AuthProviders[provider].website}\n  (redirect URI: /api/auth/callback/${provider})`
+        )
       : [];
 
   const stripe = [
@@ -445,13 +440,10 @@ export const printNextSteps = (
 
   const notes = [
     ...authProviderInstructions,
-    ...(promptResponses.miscPackages &&
-    promptResponses.miscPackages.includes("stripe")
-      ? stripe
-      : []),
+    ...(promptResponses.miscPackages?.includes("stripe") ? stripe : []),
     ...((headless && promptResponses.miscPackages) || promptResponses.auth
       ? [
-          `Remember to add Providers for packages (if you installed trpc, shadcn, or clerk) to your root layout!`,
+          "Remember to add Providers for packages (if you installed trpc, shadcn, or clerk) to your root layout!",
         ]
       : []),
     "If you have any issues, please open an issue on GitHub\n  (https://github.com/nicoalbanese/kirimase/issues)",
@@ -459,32 +451,28 @@ export const printNextSteps = (
 
   showNextSteps(packagesInstalledList, nextSteps, notes, duration);
 };
-export const createNextStepsList = (steps: string[]) => {
-  return `
+export const createNextStepsList = (steps: string[]) => `
 ${chalk.bold.underline("Next Steps")}
 ${steps.map((item, i) => `${i + 1}. ${item}`).join("\n")}`;
-};
 
-export const createNotesList = (notes: string[]) => {
-  return `
+export const createNotesList = (notes: string[]) => `
 ${chalk.bold.underline("Notes")}
 ${notes.map((item) => `- ${item}`).join("\n")}`;
-};
 
-const formatInstallList = (installList: string[]) => {
-  return `${"The following packages are now installed and configured:"}
-- ${installList.join("\n- ")}`;
-};
+const formatInstallList = (
+  installedPackages: string[]
+) => `${"The following packages are now installed and configured:"}
+- ${installedPackages.join("\n- ")}`;
 
 export const showNextSteps = (
-  installList: string[],
+  installedPackages: string[],
   steps: string[],
   notes: string[],
   duration: number
 ) => {
   const nextStepsFormatted = `🚀 Thanks for using Kirimase to kickstart your Next.js app!
 
-${formatInstallList(installList)}
+${formatInstallList(installedPackages)}
 
 ${chalk.bgGreen(
   `[installed and configured in just ${duration / 1000} seconds]`

@@ -138,8 +138,7 @@ export default function Home() {
 `;
 };
 
-const generateEmailTemplateComponent = () => {
-  return `import * as React from "react";
+const generateEmailTemplateComponent = () => `import * as React from "react";
 
 interface EmailTemplateProps {
   firstName: string;
@@ -167,7 +166,6 @@ export const EmailTemplate: React.FC<Readonly<EmailTemplateProps>> = ({
   </div>
 );
 `;
-};
 
 const generateApiRoute = () => {
   const { resend } = getFilePaths();
@@ -219,20 +217,18 @@ export const resend = new Resend(env.RESEND_API_KEY);
 `;
 };
 
-const generateEmailUtilsTs = () => {
-  return `import { z } from "zod";
+const generateEmailUtilsTs = () => `import { z } from "zod";
 
 export const emailSchema = z.object({
   name: z.string().min(3),
   email: z.string().email(),
 });
 `;
-};
 
 export const resendGenerators = {
-  generateResendPage,
-  generateEmailTemplateComponent,
   generateApiRoute,
   generateEmailIndexTs,
+  generateEmailTemplateComponent,
   generateEmailUtilsTs,
+  generateResendPage,
 };

@@ -1,16 +1,16 @@
 import { AuthProvider } from "./commands/add/auth/next-auth/utils.ts";
 
 export type DBType = "pg" | "mysql" | "sqlite";
-export type DBProviderItem = {
+export interface DBProviderItem {
+  disabled?: string | boolean;
   name: string;
   value: string;
+}
+export interface PackageChoice {
   disabled?: string | boolean;
-};
-export type PackageChoice = {
   name: string;
   value: AvailablePackage;
-  disabled?: string | boolean;
-};
+}
 export type DBProvider =
   | "postgresjs"
   | "node-postgres"
@@ -24,11 +24,11 @@ export type DBProvider =
   | "turso";
 // | "bun-sqlite";
 
-export type DBProviderOptions = {
-  pg: DBProviderItem[];
+export interface DBProviderOptions {
   mysql: DBProviderItem[];
+  pg: DBProviderItem[];
   sqlite: DBProviderItem[];
-};
+}
 export type PMType = "npm" | "yarn" | "pnpm" | "bun";
 
 // export type FieldType =
@@ -46,13 +46,13 @@ export type DrizzleColumnType =
 
 export type ColumnType = DrizzleColumnType | PrismaColumnType;
 
-export type DBField<T extends ColumnType = ColumnType> = {
-  name: string;
-  type: T;
-  references?: string;
-  notNull?: boolean; // change to required later
+export interface DBField<T extends ColumnType = ColumnType> {
   cascade?: boolean;
-};
+  name: string;
+  notNull?: boolean; // change to required later
+  references?: string;
+  type: T;
+}
 
 // export type DBField = {
 //   name: string;
@@ -83,35 +83,35 @@ export type AuthType = "next-auth" | "clerk" | "lucia" | "kinde";
 export type MiscType = "trpc" | "stripe" | "resend";
 export type AuthSubType = "self-hosted" | "managed";
 
-export type Config = {
-  hasSrc: boolean;
-  preferredPackageManager: PMType;
-  driver: DBType | null;
-  provider: DBProvider | null;
-  packages: AvailablePackage[];
-  orm: ORMType | null;
-  auth: AuthType | null;
-  componentLib: ComponentLibType | null;
-  t3: boolean;
+export interface Config {
   alias: string;
   analytics: boolean;
-};
+  auth: AuthType | null;
+  componentLib: ComponentLibType | null;
+  driver: DBType | null;
+  hasSrc: boolean;
+  orm: ORMType | null;
+  packages: AvailablePackage[];
+  preferredPackageManager: PMType;
+  provider: DBProvider | null;
+  t3: boolean;
+}
 
 export type UpdateConfig = Partial<Config>;
 
-export type InitOptions = {
-  headless?: boolean;
-  hasSrcFolder?: boolean;
-  packageManager?: PMType;
-  orm?: ORMType | null;
-  db?: DBType;
-  dbProvider?: DBProvider;
+export interface InitOptions {
   auth?: AuthType | null;
   authProviders?: AuthProvider[] | null;
-  miscPackages?: AvailablePackage[];
   componentLib?: ComponentLibType | null;
+  db?: DBType;
+  dbProvider?: DBProvider;
+  hasSrcFolder?: boolean;
+  headless?: boolean;
   includeExample?: boolean;
-};
+  miscPackages?: AvailablePackage[];
+  orm?: ORMType | null;
+  packageManager?: PMType;
+}
 
 // export type BuildOptions = {
 //   resources?: ("model" | "api_route" | "trpc_route" | "views_and_components")[];
@@ -122,11 +122,11 @@ export type InitOptions = {
 //   migrate?: "yes" | "no";
 // };
 
-export type ScaffoldSchema = {
-  tableName: string;
+export interface ScaffoldSchema {
   fields: DBField[];
   index?: string;
-};
+  tableName: string;
+}
 
 export type pgColumnType =
   | "varchar"
@@ -171,11 +171,11 @@ export type PrismaColumnType =
   | "References";
 // | "Json";
 
-export type DotEnvItem = {
-  key: string;
-  value: string;
-  isUrl?: boolean;
-  isOptional?: boolean;
+export interface DotEnvItem {
   customZodImplementation?: string;
+  isOptional?: boolean;
+  isUrl?: boolean;
+  key: string;
   public?: boolean;
-};
+  value: string;
+}

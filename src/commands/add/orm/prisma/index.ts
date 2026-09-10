@@ -1,4 +1,4 @@
-import { DBType, InitOptions } from "../../../../types.js";
+import type { DBType, InitOptions } from "../../../../types.js";
 import {
   addPackageToConfig,
   createFile,
@@ -6,6 +6,15 @@ import {
   readConfigFile,
   updateConfigFile,
 } from "../../../../utils.js";
+import { formatFilePath, getDbIndexPath } from "../../../filePaths/index.js";
+import { addToPrismaSchema } from "../../../generate/utils.js";
+import { addToInstallList } from "../../utils.js";
+import { createDotEnv } from "../drizzle/generators.js";
+import {
+  generateDbUrl,
+  prismaGenerate,
+  updateTsConfigPrismaTypeAlias,
+} from "../utils.js";
 import {
   generatePrismaComputerModel,
   generatePrismaComputerMutations,
@@ -13,15 +22,6 @@ import {
   generatePrismaDbInstance,
   generatePrismaSchema,
 } from "./generators.js";
-import { createDotEnv } from "../drizzle/generators.js";
-import {
-  generateDbUrl,
-  prismaGenerate,
-  updateTsConfigPrismaTypeAlias,
-} from "../utils.js";
-import { addToPrismaSchema } from "../../../generate/utils.js";
-import { formatFilePath, getDbIndexPath } from "../../../filePaths/index.js";
-import { addToInstallList } from "../../utils.js";
 import { addScriptsToPackageJsonForPrisma } from "./utils.js";
 
 export const addPrisma = async (
@@ -38,7 +38,7 @@ export const addPrisma = async (
   if (dbType === "mysql") {
     // scaffold planetscale specific schema
     createFile(
-      `prisma/schema.prisma`,
+      "prisma/schema.prisma",
       generatePrismaSchema(dbType, initOptions.dbProvider === "planetscale")
     );
     updateConfigFile({ provider: "planetscale" });
@@ -51,7 +51,7 @@ export const addPrisma = async (
     );
   } else {
     // create prisma/schema.prisma (with db type)
-    createFile(`prisma/schema.prisma`, generatePrismaSchema(dbType, false));
+    createFile("prisma/schema.prisma", generatePrismaSchema(dbType, false));
     createDotEnv(
       "prisma",
       preferredPackageManager,
@@ -114,15 +114,17 @@ export const addPrisma = async (
   //   preferredPackageManager,
   // );
   addToInstallList({
-    regular: ["zod", "@t3-oss/env-nextjs"],
     dev: ["prisma", "zod-prisma"],
+    regular: ["zod", "@t3-oss/env-nextjs"],
   });
 
   // run prisma generate
-  if (includeExampleModel) await prismaGenerate(preferredPackageManager);
+  if (includeExampleModel) {
+    await prismaGenerate(preferredPackageManager);
+  }
 
   addPackageToConfig("prisma");
-  updateConfigFile({ orm: "prisma", driver: dbType });
+  updateConfigFile({ driver: dbType, orm: "prisma" });
 
   // consola.success("Prisma has been added to your project!");
 };

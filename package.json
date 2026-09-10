@@ -2,17 +2,6 @@
   "name": "kirimase",
   "version": "0.0.60",
   "description": "A Rails-like CLI for building full-stack Next.js apps faster",
-  "main": "index.js",
-  "type": "module",
-  "bin": {
-    "kirimase": "./dist/index.js"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npx tsc",
-    "dev2": "node dist/index.js",
-    "dev": "tsc -w"
-  },
   "keywords": [
     "cli",
     "nextjs",
@@ -22,8 +11,22 @@
     "shadcn",
     "authjs"
   ],
-  "author": "Nico Albanese",
   "license": "ISC",
+  "author": "Nico Albanese",
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "kirimase": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "check": "ultracite check",
+    "dev": "tsc -w",
+    "dev2": "node dist/index.js",
+    "fix": "ultracite fix",
+    "test": "node --test",
+    "typecheck": "tsc --noEmit"
+  },
   "dependencies": {
     "@inquirer/prompts": "^3.0.1",
     "chalk": "^5.3.0",
@@ -36,10 +39,13 @@
     "strip-json-comments": "^5.0.1"
   },
   "devDependencies": {
-    "@types/node": "^20.4.5",
-    "@typescript-eslint/eslint-plugin": "^6.6.0",
-    "@typescript-eslint/parser": "^6.6.0",
-    "eslint": "^8.48.0",
-    "typescript": "^5.1.6"
+    "@biomejs/biome": "2.5.13",
+    "@types/node": "^24.10.1",
+    "typescript": "^5.1.6",
+    "ultracite": "7.11.1"
+  },
+  "packageManager": "pnpm@11.22.0",
+  "engines": {
+    "node": ">=24.19.0"
   }
 }

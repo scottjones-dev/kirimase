@@ -1,199 +1,201 @@
-import { ORMType } from "../../types.js";
+import type { ORMType } from "../../types.js";
 import { readConfigFile } from "../../utils.js";
-import { Paths } from "./types.js";
+import type { Paths } from "./types.js";
 
 export const paths: { t3: Paths; normal: Paths } = {
   normal: {
+    clerk: {
+      middleware: "middleware.ts",
+      signInPage: "app/(auth)/sign-in/[[...sign-in]]/page.tsx",
+      signUpPage: "app/(auth)/sign-up/[[...sign-in]]/page.tsx",
+    },
     drizzle: {
-      dbMigrate: "lib/db/migrate.ts",
       dbIndex: "lib/db/index.ts",
+      dbMigrate: "lib/db/migrate.ts",
       migrationsDir: "lib/db/migrations",
     },
-    shared: {
-      orm: {
-        servicesDir: "lib/api",
-        schemaDir: "lib/db/schema",
-      },
-      auth: {
-        authUtils: "lib/auth/utils.ts",
-        accountPage: "app/(app)/account/page.tsx",
-        authSchema: "lib/db/schema/auth.ts",
-        accountApiRoute: "app/api/account/route.ts",
-        signInComponent: "components/auth/SignIn.tsx",
-        accountCardComponent: "app/(app)/account/AccountCard.tsx",
-        userSettingsComponent: "app/(app)/account/UserSettings.tsx",
-        updateNameCardComponent: "app/(app)/account/UpdateNameCard.tsx",
-        updateEmailCardComponent: "app/(app)/account/UpdateEmailCard.tsx",
-        layoutPage: "app/(auth)/layout.tsx",
-      },
-      init: {
-        envMjs: "lib/env.mjs",
-        libUtils: "lib/utils.ts",
-        globalCss: "app/globals.css",
-        navbarComponent: "components/Navbar.tsx",
-        sidebarComponent: "components/Sidebar.tsx",
-        appLayout: "app/(app)/layout.tsx",
-        indexRoute: "app/page.tsx",
-        dashboardRoute: "app/(app)/dashboard/page.tsx",
-      },
+    kinde: {
+      routeHandler: "app/api/auth/[kindeAuth]/route.ts",
+      signInPage: "app/(auth)/sign-in/page.tsx",
+    },
+    lucia: {
+      formErrorComponent: "components/auth/AuthFormError.tsx",
+      libAuthLucia: "lib/auth/lucia.ts",
+      signInPage: "app/(auth)/sign-in/page.tsx",
+      signOutButtonComponent: "components/auth/SignOutBtn.tsx",
+      signUpPage: "app/(auth)/sign-up/page.tsx",
+      usersActions: "lib/actions/users.ts",
+    },
+    "next-auth": {
+      authProviderComponent: "lib/auth/Provider.tsx",
+      nextAuthApiRoute: "app/api/auth/[...nextauth]/route.ts",
+      signInPage: "app/(auth)/sign-in/page.tsx",
+      signOutButtonComponent: "components/auth/SignOutBtn.tsx",
     },
     prisma: { dbIndex: "lib/db/index.ts" },
+    resend: {
+      emailApiRoute: "app/api/email/route.ts",
+      emailUtils: "lib/email/utils.ts",
+      firstEmailComponent: "components/emails/FirstEmail.tsx",
+      libEmailIndex: "lib/email/index.ts",
+      resendPage: "app/(app)/resend/page.tsx",
+    },
+    shared: {
+      auth: {
+        accountApiRoute: "app/api/account/route.ts",
+        accountCardComponent: "app/(app)/account/AccountCard.tsx",
+        accountPage: "app/(app)/account/page.tsx",
+        authSchema: "lib/db/schema/auth.ts",
+        authUtils: "lib/auth/utils.ts",
+        layoutPage: "app/(auth)/layout.tsx",
+        signInComponent: "components/auth/SignIn.tsx",
+        updateEmailCardComponent: "app/(app)/account/UpdateEmailCard.tsx",
+        updateNameCardComponent: "app/(app)/account/UpdateNameCard.tsx",
+        userSettingsComponent: "app/(app)/account/UserSettings.tsx",
+      },
+      init: {
+        appLayout: "app/(app)/layout.tsx",
+        dashboardRoute: "app/(app)/dashboard/page.tsx",
+        envMjs: "lib/env.mjs",
+        globalCss: "app/globals.css",
+        indexRoute: "app/page.tsx",
+        libUtils: "lib/utils.ts",
+        navbarComponent: "components/Navbar.tsx",
+        sidebarComponent: "components/Sidebar.tsx",
+      },
+      orm: {
+        schemaDir: "lib/db/schema",
+        servicesDir: "lib/api",
+      },
+    },
+    stripe: {
+      accountBillingPage: "app/(app)/account/billing/page.tsx",
+      accountPlanSettingsComponent: "app/(app)/account/PlanSettings.tsx",
+      accountRouterTrpc: "lib/server/routers/account.ts",
+      billingManageSubscriptionComponent:
+        "app/(app)/account/billing/ManageSubscription.tsx",
+      billingSuccessToast: "app/(app)/account/billing/SuccessToast.tsx",
+      configSubscription: "config/subscriptions.ts",
+      manageSubscriptionApiRoute:
+        "app/api/billing/manage-subscription/route.ts",
+      stripeIndex: "lib/stripe/index.ts",
+      stripeSubscription: "lib/stripe/subscription.ts",
+      stripeWebhooksApiRoute: "app/api/webhooks/stripe/route.ts",
+      subscriptionSchema: "lib/db/schema/subscriptions.ts",
+    },
     trpc: {
-      trpcApiTs: "lib/trpc/api.ts",
-      trpcUtils: "lib/trpc/utils.ts",
       rootRouter: "lib/server/routers/_app.ts",
       routerDir: "lib/server/routers",
       serverTrpc: "lib/server/trpc.ts",
+      trpcApiRoute: "app/api/trpc/[trpc]/route.ts",
+      trpcApiTs: "lib/trpc/api.ts",
       trpcClient: "lib/trpc/client.ts",
       trpcContext: "lib/trpc/context.ts",
-      trpcApiRoute: "app/api/trpc/[trpc]/route.ts",
       trpcProvider: "lib/trpc/Provider.tsx",
-    },
-    clerk: {
-      middleware: "middleware.ts",
-      signInPage: "app/(auth)/sign-in/[[...sign-in]]/page.tsx",
-      signUpPage: "app/(auth)/sign-up/[[...sign-in]]/page.tsx",
-    },
-    lucia: {
-      signInPage: "app/(auth)/sign-in/page.tsx",
-      signUpPage: "app/(auth)/sign-up/page.tsx",
-      usersActions: "lib/actions/users.ts",
-      libAuthLucia: "lib/auth/lucia.ts",
-      formErrorComponent: "components/auth/AuthFormError.tsx",
-      signOutButtonComponent: "components/auth/SignOutBtn.tsx",
-    },
-    kinde: {
-      routeHandler: "app/api/auth/[kindeAuth]/route.ts",
-      signInPage: "app/(auth)/sign-in/page.tsx",
-    },
-    resend: {
-      emailUtils: "lib/email/utils.ts",
-      resendPage: "app/(app)/resend/page.tsx",
-      emailApiRoute: "app/api/email/route.ts",
-      libEmailIndex: "lib/email/index.ts",
-      firstEmailComponent: "components/emails/FirstEmail.tsx",
-    },
-    stripe: {
-      stripeIndex: "lib/stripe/index.ts",
-      accountBillingPage: "app/(app)/account/billing/page.tsx",
-      configSubscription: "config/subscriptions.ts",
-      stripeSubscription: "lib/stripe/subscription.ts",
-      accountRouterTrpc: "lib/server/routers/account.ts",
-      billingSuccessToast: "app/(app)/account/billing/SuccessToast.tsx",
-      subscriptionSchema: "lib/db/schema/subscriptions.ts",
-      stripeWebhooksApiRoute: "app/api/webhooks/stripe/route.ts",
-      manageSubscriptionApiRoute:
-        "app/api/billing/manage-subscription/route.ts",
-      accountPlanSettingsComponent: "app/(app)/account/PlanSettings.tsx",
-      billingManageSubscriptionComponent:
-        "app/(app)/account/billing/ManageSubscription.tsx",
-    },
-    "next-auth": {
-      signOutButtonComponent: "components/auth/SignOutBtn.tsx",
-      nextAuthApiRoute: "app/api/auth/[...nextauth]/route.ts",
-      authProviderComponent: "lib/auth/Provider.tsx",
-      signInPage: "app/(auth)/sign-in/page.tsx",
+      trpcUtils: "lib/trpc/utils.ts",
     },
   },
   t3: {
-    drizzle: {
-      dbMigrate: "server/db/migrate.ts",
-      schemaTs: "server/db/schema.ts",
-      dbIndex: "server/db/index.ts",
-      migrationsDir: "server/db/migrations",
-      schemaAggregator: "server/db/schema/_root.ts",
-    },
-    shared: {
-      orm: {
-        servicesDir: "lib/api",
-        schemaDir: "server/db/schema",
-      },
-      auth: {
-        authUtils: "lib/auth/utils.ts",
-        accountPage: "app/(app)/account/page.tsx",
-        authSchema: "server/db/schema/auth.ts",
-        accountApiRoute: "app/api/account/route.ts",
-        signInComponent: "components/auth/SignIn.tsx",
-        accountCardComponent: "app/(app)/account/AccountCard.tsx",
-        userSettingsComponent: "app/(app)/account/UserSettings.tsx",
-        updateNameCardComponent: "app/(app)/account/UpdateNameCard.tsx",
-        updateEmailCardComponent: "app/(app)/account/UpdateEmailCard.tsx",
-        layoutPage: "app/(auth)/layout.tsx",
-      },
-      init: {
-        envMjs: "env.js",
-        libUtils: "lib/utils.ts",
-        globalCss: "styles/globals.css",
-        navbarComponent: "components/Navbar.tsx",
-        sidebarComponent: "components/Sidebar.tsx",
-        appLayout: "app/(app)/layout.tsx",
-        indexRoute: "app/page.tsx",
-        dashboardRoute: "app/(app)/dashboard/page.tsx",
-      },
-    },
-    prisma: { dbIndex: "server/db.ts" },
-    trpc: {
-      trpcApiTs: "trpc/server.ts",
-      trpcUtils: "trpc/shared.ts",
-      rootRouter: "server/api/root.ts",
-      routerDir: "server/api/routers",
-      serverTrpc: "server/api/trpc.ts",
-      trpcClient: "trpc/react.tsx",
-      trpcContext: "server/api/trpc.ts",
-      trpcApiRoute: "app/api/trpc/[trpc]/route.ts",
-      trpcProvider: "trpc/react.tsx",
-    },
     clerk: {
       middleware: "middleware.ts",
       signInPage: "app/(auth)/sign-in/[[...sign-in]]/page.tsx",
       signUpPage: "app/(auth)/sign-up/[[...sign-in]]/page.tsx",
     },
-    lucia: {
-      signInPage: "app/(auth)/sign-in/page.tsx",
-      signUpPage: "app/(auth)/sign-up/page.tsx",
-      libAuthLucia: "lib/auth/lucia.ts",
-      usersActions: "lib/actions/users.ts",
-      formErrorComponent: "components/auth/AuthFormError.tsx",
-      signOutButtonComponent: "components/auth/SignOutBtn.tsx",
+    drizzle: {
+      dbIndex: "server/db/index.ts",
+      dbMigrate: "server/db/migrate.ts",
+      migrationsDir: "server/db/migrations",
+      schemaAggregator: "server/db/schema/_root.ts",
+      schemaTs: "server/db/schema.ts",
     },
     kinde: {
       routeHandler: "app/api/auth/[kindeAuth]/route.ts",
       signInPage: "app/(auth)/sign-in/page.tsx",
     },
-    resend: {
-      emailUtils: "lib/email/utils.ts",
-      resendPage: "app/(app)/resend/page.tsx",
-      emailApiRoute: "app/api/email/route.ts",
-      libEmailIndex: "lib/email/index.ts",
-      firstEmailComponent: "components/emails/FirstEmail.tsx",
-    },
-    stripe: {
-      stripeIndex: "lib/stripe/index.ts",
-      accountBillingPage: "app/(app)/account/billing/page.tsx",
-      configSubscription: "config/subscriptions.ts",
-      stripeSubscription: "lib/stripe/subscription.ts",
-      accountRouterTrpc: "server/api/routers/account.ts",
-      billingSuccessToast: "app/(app)/account/billing/SuccessToast.tsx",
-      subscriptionSchema: "server/db/schema/subscriptions.ts",
-      stripeWebhooksApiRoute: "app/api/webhooks/stripe/route.ts",
-      manageSubscriptionApiRoute:
-        "app/api/billing/manage-subscription/route.ts",
-      accountPlanSettingsComponent: "app/(app)/account/PlanSettings.tsx",
-      billingManageSubscriptionComponent:
-        "app/(app)/account/billing/ManageSubscription.tsx",
+    lucia: {
+      formErrorComponent: "components/auth/AuthFormError.tsx",
+      libAuthLucia: "lib/auth/lucia.ts",
+      signInPage: "app/(auth)/sign-in/page.tsx",
+      signOutButtonComponent: "components/auth/SignOutBtn.tsx",
+      signUpPage: "app/(auth)/sign-up/page.tsx",
+      usersActions: "lib/actions/users.ts",
     },
     "next-auth": {
-      signOutButtonComponent: "components/auth/SignOutBtn.tsx",
-      nextAuthApiRoute: "app/api/auth/[...nextauth]/route.ts",
       authProviderComponent: "lib/auth/Provider.tsx",
+      nextAuthApiRoute: "app/api/auth/[...nextauth]/route.ts",
       signInPage: "app/(auth)/sign-in/page.tsx",
+      signOutButtonComponent: "components/auth/SignOutBtn.tsx",
+    },
+    prisma: { dbIndex: "server/db.ts" },
+    resend: {
+      emailApiRoute: "app/api/email/route.ts",
+      emailUtils: "lib/email/utils.ts",
+      firstEmailComponent: "components/emails/FirstEmail.tsx",
+      libEmailIndex: "lib/email/index.ts",
+      resendPage: "app/(app)/resend/page.tsx",
+    },
+    shared: {
+      auth: {
+        accountApiRoute: "app/api/account/route.ts",
+        accountCardComponent: "app/(app)/account/AccountCard.tsx",
+        accountPage: "app/(app)/account/page.tsx",
+        authSchema: "server/db/schema/auth.ts",
+        authUtils: "lib/auth/utils.ts",
+        layoutPage: "app/(auth)/layout.tsx",
+        signInComponent: "components/auth/SignIn.tsx",
+        updateEmailCardComponent: "app/(app)/account/UpdateEmailCard.tsx",
+        updateNameCardComponent: "app/(app)/account/UpdateNameCard.tsx",
+        userSettingsComponent: "app/(app)/account/UserSettings.tsx",
+      },
+      init: {
+        appLayout: "app/(app)/layout.tsx",
+        dashboardRoute: "app/(app)/dashboard/page.tsx",
+        envMjs: "env.js",
+        globalCss: "styles/globals.css",
+        indexRoute: "app/page.tsx",
+        libUtils: "lib/utils.ts",
+        navbarComponent: "components/Navbar.tsx",
+        sidebarComponent: "components/Sidebar.tsx",
+      },
+      orm: {
+        schemaDir: "server/db/schema",
+        servicesDir: "lib/api",
+      },
+    },
+    stripe: {
+      accountBillingPage: "app/(app)/account/billing/page.tsx",
+      accountPlanSettingsComponent: "app/(app)/account/PlanSettings.tsx",
+      accountRouterTrpc: "server/api/routers/account.ts",
+      billingManageSubscriptionComponent:
+        "app/(app)/account/billing/ManageSubscription.tsx",
+      billingSuccessToast: "app/(app)/account/billing/SuccessToast.tsx",
+      configSubscription: "config/subscriptions.ts",
+      manageSubscriptionApiRoute:
+        "app/api/billing/manage-subscription/route.ts",
+      stripeIndex: "lib/stripe/index.ts",
+      stripeSubscription: "lib/stripe/subscription.ts",
+      stripeWebhooksApiRoute: "app/api/webhooks/stripe/route.ts",
+      subscriptionSchema: "server/db/schema/subscriptions.ts",
+    },
+    trpc: {
+      rootRouter: "server/api/root.ts",
+      routerDir: "server/api/routers",
+      serverTrpc: "server/api/trpc.ts",
+      trpcApiRoute: "app/api/trpc/[trpc]/route.ts",
+      trpcApiTs: "trpc/server.ts",
+      trpcClient: "trpc/react.tsx",
+      trpcContext: "server/api/trpc.ts",
+      trpcProvider: "trpc/react.tsx",
+      trpcUtils: "trpc/shared.ts",
     },
   },
 };
 export const getFilePaths = () => {
   const { t3 } = readConfigFile();
-  if (t3) return paths.t3;
-  else return paths.normal;
+  if (t3) {
+    return paths.t3;
+  }
+  return paths.normal;
 };
 
 export function removeFileExtension(filePath: string): string {
@@ -203,7 +205,7 @@ export function removeFileExtension(filePath: string): string {
   // Ensure that the dot is not the first character (hidden files) and is not part of the directory path
   if (lastDotIndex > 0 && filePath.lastIndexOf("/") < lastDotIndex) {
     // Remove the extension
-    return filePath.substring(0, lastDotIndex);
+    return filePath.slice(0, lastDotIndex);
   }
 
   // Return the original filePath if no extension was found
@@ -229,8 +231,8 @@ export const generateServiceFileNames = (newModel: string) => {
   const { rootPath } = readConfigFile();
   const rootDir = rootPath.concat(shared.orm.servicesDir);
   return {
-    queriesPath: `${rootDir}/${newModel}/queries.ts`,
     mutationsPath: `${rootDir}/${newModel}/mutations.ts`,
+    queriesPath: `${rootDir}/${newModel}/queries.ts`,
   };
 };
 
@@ -238,7 +240,13 @@ export const getDbIndexPath = (ormToBeInstalled?: ORMType) => {
   const { drizzle, prisma } = getFilePaths();
   const { orm: ormFromConfig } = readConfigFile();
   const orm = ormToBeInstalled ? ormToBeInstalled : ormFromConfig;
-  if (orm === "prisma") return prisma.dbIndex;
-  if (orm === "drizzle") return drizzle.dbIndex;
-  if (!orm || orm === "null") return null;
+  if (orm === "prisma") {
+    return prisma.dbIndex;
+  }
+  if (orm === "drizzle") {
+    return drizzle.dbIndex;
+  }
+  if (!orm || orm === "null") {
+    return null;
+  }
 };

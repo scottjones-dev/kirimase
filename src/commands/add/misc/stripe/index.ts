@@ -12,26 +12,32 @@
 // add to .env (STRIPE_SECRET_KEY,NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,STRIPE_WEBHOOK_SECRET,NEXT_PUBLIC_STRIPE_MOBILE_PRICE_ID) [done]
 // install packages [done]
 
-import path from "path";
+import fs, { existsSync } from "node:fs";
+import path from "node:path";
+import { consola } from "consola";
+import type { AvailablePackage, InitOptions } from "../../../../types.js";
 import {
   addPackageToConfig,
   createFile,
-  getFileLocations,
-  installPackages,
   readConfigFile,
   replaceFile,
   updateConfigFile,
 } from "../../../../utils.js";
-import { consola } from "consola";
-import fs, { existsSync } from "fs";
-import { addToDotEnv } from "../../orm/drizzle/generators.js";
+import { formatFilePath, getFilePaths } from "../../../filePaths/index.js";
+import { updateRootSchema } from "../../../generate/generators/model/utils.js";
+import { updateTRPCRouter } from "../../../generate/generators/trpcRoute.js";
 import {
   addToPrismaModelBulk,
   addToPrismaSchema,
 } from "../../../generate/utils.js";
+import { addToClerkIgnoredRoutes } from "../../auth/clerk/utils.js";
+import { libAuthUtilsTsWithoutAuthOptions } from "../../auth/next-auth/generators.js";
+import { createAccountPage } from "../../auth/shared/generators.js";
+import { addPackage } from "../../index.js";
+import { addToDotEnv } from "../../orm/drizzle/generators.js";
+import { AuthSubTypeMapping, addToInstallList } from "../../utils.js";
 import {
   createAccountTRPCRouter,
-  generateAccountPage,
   generateBillingCard,
   generateBillingPage,
   generateConfigSubscriptionsTs,
@@ -43,15 +49,6 @@ import {
   generateSubscriptionsDrizzleSchema,
   generateSuccessToast,
 } from "./generators.js";
-import { addPackage } from "../../index.js";
-import { addToClerkIgnoredRoutes } from "../../auth/clerk/utils.js";
-import { AvailablePackage, InitOptions } from "../../../../types.js";
-import { updateTRPCRouter } from "../../../generate/generators/trpcRoute.js";
-import { createAccountPage } from "../../auth/shared/generators.js";
-import { formatFilePath, getFilePaths } from "../../../filePaths/index.js";
-import { libAuthUtilsTsWithoutAuthOptions } from "../../auth/next-auth/generators.js";
-import { updateRootSchema } from "../../../generate/generators/model/utils.js";
-import { AuthSubTypeMapping, addToInstallList } from "../../utils.js";
 
 export const addStripe = async (
   packagesBeingInstalled: AvailablePackage[],
@@ -59,7 +56,6 @@ export const addStripe = async (
 ) => {
   const {
     componentLib,
-    preferredPackageManager,
     rootPath,
     orm,
     driver,
@@ -99,9 +95,9 @@ export const addStripe = async (
     addToPrismaSchema(
       `model Subscription {
   userId                 String    @unique${
-    authSubtype !== "managed"
-      ? `\n  user                   User      @relation(fields: [userId], references: [id])`
-      : ""
+    authSubtype === "managed"
+      ? ""
+      : "\n  user                   User      @relation(fields: [userId], references: [id])"
   }
   stripeCustomerId       String    @unique @map(name: "stripe_customer_id")
   stripeSubscriptionId   String?   @unique @map(name: "stripe_subscription_id")
@@ -171,7 +167,7 @@ export const addStripe = async (
     generateManageSubscriptionButton()
   );
   // components: create success toast
-  if (componentLib === "shadcn-ui")
+  if (componentLib === "shadcn-ui") {
     createFile(
       formatFilePath(stripe.billingSuccessToast, {
         prefix: "rootPath",
@@ -179,6 +175,7 @@ export const addStripe = async (
       }),
       generateSuccessToast()
     );
+  }
 
   if (options.headless === undefined) {
     // add billingcard to accountpage with billing card TODO
@@ -222,10 +219,10 @@ export const addStripe = async (
     [
       { key: "STRIPE_SECRET_KEY", value: "" },
       { key: "STRIPE_WEBHOOK_SECRET", value: "" },
-      { key: "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY", value: "", public: true },
-      { key: "NEXT_PUBLIC_STRIPE_PRO_PRICE_ID", value: "", public: true },
-      { key: "NEXT_PUBLIC_STRIPE_MAX_PRICE_ID", value: "", public: true },
-      { key: "NEXT_PUBLIC_STRIPE_ULTRA_PRICE_ID", value: "", public: true },
+      { key: "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY", public: true, value: "" },
+      { key: "NEXT_PUBLIC_STRIPE_PRO_PRICE_ID", public: true, value: "" },
+      { key: "NEXT_PUBLIC_STRIPE_MAX_PRICE_ID", public: true, value: "" },
+      { key: "NEXT_PUBLIC_STRIPE_ULTRA_PRICE_ID", public: true, value: "" },
     ],
     rootPath
   );
@@ -239,8 +236,8 @@ export const addStripe = async (
   // );
 
   addToInstallList({
-    regular: ["stripe", "@stripe/stripe-js", "lucide-react"],
     dev: [],
+    regular: ["stripe", "@stripe/stripe-js", "lucide-react"],
   });
 
   addPackageToConfig("stripe");
@@ -248,8 +245,8 @@ export const addStripe = async (
   if (packages.includes("trpc")) {
     createFile(
       formatFilePath(stripe.accountRouterTrpc, {
-        removeExtension: false,
         prefix: "rootPath",
+        removeExtension: false,
       }),
       createAccountTRPCRouter()
     );
@@ -266,7 +263,7 @@ const addListenScriptToPackageJson = () => {
   const packageJsonData = fs.readFileSync(packageJsonPath, "utf-8");
 
   // Parse package.json content
-  let packageJson = JSON.parse(packageJsonData);
+  const packageJson = JSON.parse(packageJsonData);
 
   const newItems = {
     "stripe:listen":
@@ -286,7 +283,7 @@ const addListenScriptToPackageJson = () => {
   // consola.success("Stripe listen script added to package.json");
 };
 
-const addUtilToUtilsTs = (rootPath: string) => {
+const addUtilToUtilsTs = (_rootPath: string) => {
   const { shared } = getFilePaths();
   const utilContentToAdd = `export function absoluteUrl(path: string) {
   return \`\${
@@ -303,7 +300,7 @@ const addUtilToUtilsTs = (rootPath: string) => {
     if (!utilsContent.includes(utilContentToAdd)) {
       const newUtilsContent = utilsContent.concat(`\n${utilContentToAdd}`);
       replaceFile(utilsPath, newUtilsContent);
-    } else return;
+    }
   } else {
     createFile(utilsPath, utilContentToAdd);
   }

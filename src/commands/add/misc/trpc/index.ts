@@ -1,8 +1,14 @@
+import type { InitOptions } from "../../../../types.js";
 import {
   addPackageToConfig,
   createFile,
   readConfigFile,
 } from "../../../../utils.js";
+import { formatFilePath, getFilePaths } from "../../../filePaths/index.js";
+import {
+  addContextProviderToAppLayout,
+  addToInstallList,
+} from "../../utils.js";
 import {
   apiTrpcRouteTs,
   libTrpcApiTs,
@@ -14,14 +20,8 @@ import {
   serverRouterComputersTs,
   serverTrpcTs,
 } from "./generators.js";
-import {
-  addContextProviderToAppLayout,
-  addToInstallList,
-} from "../../utils.js";
-import { formatFilePath, getFilePaths } from "../../../filePaths/index.js";
-import { InitOptions } from "../../../../types.js";
 
-export const addTrpc = async (options?: InitOptions) => {
+export const addTrpc = (options?: InitOptions) => {
   const { orm } = readConfigFile();
   const { trpc } = getFilePaths();
   // 1. Create lib/server/index.ts
@@ -44,7 +44,7 @@ export const addTrpc = async (options?: InitOptions) => {
   // 3. create lib/server/router/ directory and maybe a users file
   // TODO : T3 COMPATABILITY
   createFile(
-    formatFilePath(`lib/server/routers/computers.ts`, {
+    formatFilePath("lib/server/routers/computers.ts", {
       prefix: "rootPath",
       removeExtension: false,
     }),
@@ -115,6 +115,7 @@ export const addTrpc = async (options?: InitOptions) => {
   // );
 
   addToInstallList({
+    dev: [],
     regular: [
       "@tanstack/react-query@^4.32.6",
       "@trpc/client@^10.37.1",
@@ -124,15 +125,15 @@ export const addTrpc = async (options?: InitOptions) => {
       "superjson",
       "server-only",
     ],
-    dev: [],
   });
-  if (orm === null) addToInstallList({ regular: ["zod"], dev: [] });
+  if (orm === null) {
+    addToInstallList({ dev: [], regular: ["zod"] });
+  }
 
   addPackageToConfig("trpc");
   // 9. Instruct user to add the <Provider /> to their root layout.
   if (options.headless === undefined) {
     addContextProviderToAppLayout("TrpcProvider");
-  } else {
   }
   // addToDotEnv(
   //   [

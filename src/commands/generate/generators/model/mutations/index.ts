@@ -1,5 +1,5 @@
-import { DBType, ORMType } from "../../../../../types.js";
-import { Schema } from "../../../types.js";
+import type { DBType, ORMType } from "../../../../../types.js";
+import type { Schema } from "../../../types.js";
 import { generateMutations } from "./generators.js";
 
 export const generateMutationContent = (

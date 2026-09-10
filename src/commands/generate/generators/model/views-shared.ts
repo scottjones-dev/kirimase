@@ -1,7 +1,7 @@
-import { existsSync, readFileSync } from "fs";
+import { existsSync, readFileSync } from "node:fs";
+import { replaceFile } from "../../../../utils.js";
 import { formatFilePath } from "../../../filePaths/index.js";
 import { formatTableName } from "../../utils.js";
-import { replaceFile } from "../../../../utils.js";
 
 export const addLinkToSidebar = (tableName: string) => {
   const { tableNameKebabCase, tableNameNormalEnglishCapitalised } =
@@ -11,7 +11,9 @@ export const addLinkToSidebar = (tableName: string) => {
     removeExtension: false,
   });
   const configExists = existsSync(sidebarConfigPath);
-  if (!configExists) return;
+  if (!configExists) {
+    return;
+  }
 
   const configContents = readFileSync(sidebarConfigPath, "utf-8");
   const initContents: string =
@@ -31,10 +33,10 @@ export const addLinkToSidebar = (tableName: string) => {
 ];
 `;
   let newContent: string;
-  if (configContents.indexOf(initContents) !== -1) {
-    newContent = configContents.replace(initContents, replacedInitContents);
-  } else {
-    if (configContents.indexOf(tableNameKebabCase) !== -1) return;
+  if (configContents.indexOf(initContents) === -1) {
+    if (configContents.indexOf(tableNameKebabCase) !== -1) {
+      return;
+    }
     const searchQuery = `    title: "Entities",
     links: [
 `;
@@ -47,6 +49,8 @@ export const addLinkToSidebar = (tableName: string) => {
       },
 `;
     newContent = configContents.replace(searchQuery, replacement);
+  } else {
+    newContent = configContents.replace(initContents, replacedInitContents);
   }
   replaceFile(sidebarConfigPath, newContent);
 };

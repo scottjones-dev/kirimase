@@ -1,4 +1,9 @@
-export type Paths = {
+export interface Paths {
+  clerk: {
+    middleware: string;
+    signInPage: string;
+    signUpPage: string;
+  };
   drizzle: {
     dbMigrate: string;
     migrationsDir: string;
@@ -6,7 +11,32 @@ export type Paths = {
     schemaTs?: string;
     schemaAggregator?: string;
   };
+  kinde: {
+    routeHandler: string;
+    signInPage: string;
+  };
+  lucia: {
+    signInPage: string;
+    signUpPage: string;
+    usersActions: string;
+    libAuthLucia: string;
+    signOutButtonComponent: string;
+    formErrorComponent: string;
+  };
+  "next-auth": {
+    nextAuthApiRoute: string;
+    authProviderComponent: string;
+    signOutButtonComponent: string;
+    signInPage: string;
+  };
   prisma: { dbIndex: string };
+  resend: {
+    resendPage: string;
+    firstEmailComponent: string;
+    emailApiRoute: string;
+    emailUtils: string;
+    libEmailIndex: string;
+  };
   shared: {
     init: {
       envMjs: string;
@@ -35,40 +65,6 @@ export type Paths = {
       authSchema?: string;
     };
   };
-  "next-auth": {
-    nextAuthApiRoute: string;
-    authProviderComponent: string;
-    signOutButtonComponent: string;
-    signInPage: string;
-  };
-  clerk: {
-    middleware: string;
-    signInPage: string;
-    signUpPage: string;
-  };
-  lucia: {
-    signInPage: string;
-    signUpPage: string;
-    usersActions: string;
-    libAuthLucia: string;
-    signOutButtonComponent: string;
-    formErrorComponent: string;
-  };
-  kinde: {
-    routeHandler: string;
-    signInPage: string;
-  };
-  trpc: {
-    rootRouter: string;
-    routerDir: string;
-    serverTrpc: string;
-    trpcApiRoute: string;
-    trpcClient: string;
-    trpcProvider: string;
-    trpcApiTs: string;
-    trpcContext: string;
-    trpcUtils: string;
-  };
   stripe: {
     subscriptionSchema?: string;
     stripeIndex: string;
@@ -82,11 +78,15 @@ export type Paths = {
     manageSubscriptionApiRoute: string;
     accountRouterTrpc?: string;
   };
-  resend: {
-    resendPage: string;
-    firstEmailComponent: string;
-    emailApiRoute: string;
-    emailUtils: string;
-    libEmailIndex: string;
+  trpc: {
+    rootRouter: string;
+    routerDir: string;
+    serverTrpc: string;
+    trpcApiRoute: string;
+    trpcClient: string;
+    trpcProvider: string;
+    trpcApiTs: string;
+    trpcContext: string;
+    trpcUtils: string;
   };
-};
+}

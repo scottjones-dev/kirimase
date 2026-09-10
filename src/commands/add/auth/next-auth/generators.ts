@@ -1,18 +1,17 @@
-import { consola } from "consola";
-import {
-  AuthDriver,
-  AuthProvider,
-  AuthProviders,
-  capitalised,
-} from "./utils.js";
-import fs from "fs";
-import { ComponentLibType, DBType, ORMType } from "../../../../types.js";
+import fs from "node:fs";
+import type { ComponentLibType, DBType, ORMType } from "../../../../types.js";
 import { readConfigFile } from "../../../../utils.js";
 import {
   formatFilePath,
   getDbIndexPath,
   getFilePaths,
 } from "../../../filePaths/index.js";
+import {
+  AuthDriver,
+  type AuthProvider,
+  AuthProviders,
+  capitalised,
+} from "./utils.js";
 
 // 1. Create app/api/auth/[...nextauth].ts
 export const apiAuthNextAuthTsOld = (
@@ -22,22 +21,20 @@ export const apiAuthNextAuthTsOld = (
 ) => {
   const { shared } = getFilePaths();
   const dbIndex = getDbIndexPath();
-  const providersToUse = providers.map((provider) => {
-    return {
-      name: provider,
-      providerKey: AuthProviders[provider].code,
-      website: AuthProviders[provider].website,
-    };
-  });
+  const providersToUse = providers.map((provider) => ({
+    name: provider,
+    providerKey: AuthProviders[provider].code,
+    website: AuthProviders[provider].website,
+  }));
 
   return `${
-    dbType !== null
-      ? `import { db } from "${formatFilePath(dbIndex, {
+    dbType === null
+      ? ""
+      : `import { db } from "${formatFilePath(dbIndex, {
           prefix: "alias",
           removeExtension: true,
         })}";
 ${AuthDriver[orm].import}`
-      : ""
   }
 import { DefaultSession, NextAuthOptions } from "next-auth";
 import NextAuth from "next-auth/next";
@@ -65,9 +62,9 @@ declare module "next-auth" {
 
 export const authOptions: NextAuthOptions = {
   ${
-    dbType !== null
-      ? `adapter: ${AuthDriver[orm].adapter}(db) as Adapter,`
-      : "// adapter: yourDBAdapterHere"
+    dbType === null
+      ? "// adapter: yourDBAdapterHere"
+      : `adapter: ${AuthDriver[orm].adapter}(db) as Adapter,`
   }
   callbacks: {
     session: ({ session, user }) => {
@@ -109,8 +106,7 @@ export { handler as GET, handler as POST };
 };
 
 // 2. create lib/auth/Provider.tsx
-export const libAuthProviderTsx = () => {
-  return `"use client";
+export const libAuthProviderTsx = () => `"use client";
 
 import { SessionProvider } from "next-auth/react";
 
@@ -121,14 +117,13 @@ type Props = {
 export default function NextAuthProvider({ children }: Props) {
   return <SessionProvider>{children}</SessionProvider>;
 };`;
-};
 
 // 3. create lib/auth/utils.ts
 export const libAuthUtilsTsWithoutAuthOptions = () => {
   const { "next-auth": nextAuth } = getFilePaths();
   return `import { authOptions } from "${formatFilePath(
     nextAuth.nextAuthApiRoute,
-    { removeExtension: true, prefix: "alias" }
+    { prefix: "alias", removeExtension: true }
   )}";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
@@ -152,22 +147,20 @@ export const libAuthUtilsTs = (
 ) => {
   const { shared } = getFilePaths();
   const dbIndex = getDbIndexPath();
-  const providersToUse = providers.map((provider) => {
-    return {
-      name: provider,
-      providerKey: AuthProviders[provider].code,
-      website: AuthProviders[provider].website,
-    };
-  });
+  const providersToUse = providers.map((provider) => ({
+    name: provider,
+    providerKey: AuthProviders[provider].code,
+    website: AuthProviders[provider].website,
+  }));
 
   return `${
-    dbType !== null
-      ? `import { db } from "${formatFilePath(dbIndex, {
+    dbType === null
+      ? ""
+      : `import { db } from "${formatFilePath(dbIndex, {
           prefix: "alias",
           removeExtension: true,
         })}";
 ${AuthDriver[orm].import}`
-      : ""
   }
 import { DefaultSession, getServerSession, NextAuthOptions } from "next-auth";
 import { Adapter } from "next-auth/adapters";
@@ -205,9 +198,9 @@ export type AuthSession = {
 
 export const authOptions: NextAuthOptions = {
   ${
-    dbType !== null
-      ? `adapter: ${AuthDriver[orm].adapter}(db) as Adapter,`
-      : "// adapter: yourDBAdapterHere"
+    dbType === null
+      ? "// adapter: yourDBAdapterHere"
+      : `adapter: ${AuthDriver[orm].adapter}(db) as Adapter,`
   }
   callbacks: {
     session: ({ session, user }) => {
@@ -469,8 +462,8 @@ export default function SignIn() {
   );
 }
 `;
-  } else {
-    return `
+  }
+  return `
 "use client";
 import { useSession, signIn, signOut } from "next-auth/react";
 
@@ -508,15 +501,14 @@ export default function SignIn() {
   );
 }
 `;
-  }
 };
 
 // 6. updateTrpcTs
 export const updateTrpcTs = () => {
   const { trpc } = getFilePaths();
   const filePath = formatFilePath(trpc.serverTrpc, {
-    removeExtension: false,
     prefix: "rootPath",
+    removeExtension: false,
   });
 
   const fileContent = fs.readFileSync(filePath, "utf-8");
@@ -589,19 +581,18 @@ export const createPrismaAuthSchema = (
   driver: DBType,
   usingPlanetScale: boolean,
   usingNextAuthGitHub: boolean
-) => {
-  return `model Account {
+) => `model Account {
   id                 String  @id @default(cuid())
   userId             String
   type               String
   provider           String
   providerAccountId  String
-  refresh_token      String?  ${driver !== "sqlite" ? "@db.Text" : ""}
-  access_token       String?  ${driver !== "sqlite" ? "@db.Text" : ""}
+  refresh_token      String?  ${driver === "sqlite" ? "" : "@db.Text"}
+  access_token       String?  ${driver === "sqlite" ? "" : "@db.Text"}
   expires_at         Int?
   token_type         String?
   scope              String?
-  id_token           String?  ${driver !== "sqlite" ? "@db.Text" : ""}
+  id_token           String?  ${driver === "sqlite" ? "" : "@db.Text"}
   session_state      String?
 
   ${usingNextAuthGitHub ? "refresh_token_expires_in Int?" : ""}
@@ -640,7 +631,6 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }`;
-};
 
 export const generateUpdatedRootRoute = () => {
   const { shared } = getFilePaths();
@@ -670,8 +660,7 @@ export default async function Home() {
 `;
 };
 
-export const generateSignInPage = () => {
-  return `"use client";
+export const generateSignInPage = () => `"use client";
 
 import { signIn } from "next-auth/react";
 
@@ -695,4 +684,3 @@ const Page = () => {
 
 export default Page;
 `;
-};

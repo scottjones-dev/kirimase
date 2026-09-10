@@ -1,17 +1,16 @@
-import { DBType } from "../../../../../types.js";
+import type { DBType } from "../../../../../types.js";
 import { readConfigFile } from "../../../../../utils.js";
 import {
   formatFilePath,
   getDbIndexPath,
   getFilePaths,
 } from "../../../../filePaths/index.js";
-import { Schema } from "../../../types.js";
+import type { Schema } from "../../../types.js";
 import { formatTableName } from "../../../utils.js";
 import { authForWhereClausePrisma, generateAuthCheck } from "../utils.js";
 
 const generateDrizzleImports = (schema: Schema) => {
   const { tableName, belongsToUser } = schema;
-  const { orm } = readConfigFile();
   const {
     tableNameSingularCapitalised,
     tableNameCamelCase,
@@ -107,20 +106,20 @@ const generateDrizzleUpdateMutation = (schema: Schema, driver: DBType) => {
                : ""
            } }`
          : `new${tableNameSingularCapitalised}`
-     })
+})
      .where(${
        belongsToUser ? "and(" : ""
-     }eq(${tableNameCamelCase}.id, ${tableNameSingular}Id!)${
+}eq(${tableNameCamelCase}.id, ${tableNameSingular}Id!)${
        belongsToUser
          ? `, eq(${tableNameCamelCase}.userId, session?.user.id!)))`
          : ")"
-     }${
+}${
        driver === "mysql"
          ? "\n    return {success: true}"
          : `
      .returning();
     return { ${tableNameSingular}: ${tableNameFirstChar} };`
-     }
+}
   } catch (err) {
     const message = (err as Error).message ?? "Error, please try again";
     console.error(message);
@@ -278,16 +277,16 @@ const generatePrismaDeleteMutation = (schema: Schema) => {
 };
 
 export const generateMutations = {
-  prisma: {
-    imports: generatePrismaImports,
-    create: generatePrismaCreateMutation,
-    update: generatePrismaUpdateMutation,
-    delete: generatePrismaDeleteMutation,
-  },
   drizzle: {
-    imports: generateDrizzleImports,
     create: generateDrizzleCreateMutation,
-    update: generateDrizzleUpdateMutation,
     delete: generateDrizzleDeleteMutation,
+    imports: generateDrizzleImports,
+    update: generateDrizzleUpdateMutation,
+  },
+  prisma: {
+    create: generatePrismaCreateMutation,
+    delete: generatePrismaDeleteMutation,
+    imports: generatePrismaImports,
+    update: generatePrismaUpdateMutation,
   },
 };

@@ -1,10 +1,8 @@
-import { warn } from "console";
-import { existsSync, readFileSync } from "fs";
+import { existsSync, readFileSync } from "node:fs";
 import { createFile, replaceFile } from "../../../../utils.js";
 import { formatFilePath, getFilePaths } from "../../../filePaths/index.js";
 
-export const generateGlobalsCss = () => {
-  return `@tailwind base;
+export const generateGlobalsCss = () => `@tailwind base;
 @tailwind components;
 @tailwind utilities;
  
@@ -81,7 +79,6 @@ export const generateGlobalsCss = () => {
   }
 }
 `;
-};
 
 export const generateUpdatedTWConfig = () => {
   const colors = `extend: {
@@ -122,14 +119,15 @@ export const generateUpdatedTWConfig = () => {
       },`;
   const twConfigPath = "tailwind.config.ts";
   const twConfigExists = existsSync(twConfigPath);
-  if (!twConfigExists) return;
+  if (!twConfigExists) {
+    return;
+  }
   const twConfigContents = readFileSync(twConfigPath, "utf-8");
   const newContents = twConfigContents.replace("extend: {", colors);
   return newContents;
 };
 
-export const generateGenericHomepage = () => {
-  return `export default function Home() {
+export const generateGenericHomepage = () => `export default function Home() {
   return (
     <main>
       <h1 className="font-semibold text-2xl">Home</h1>
@@ -139,7 +137,6 @@ export const generateGenericHomepage = () => {
     </main>
   );
 }`;
-};
 
 const defaultAppLayout = `export default async function AppLayout({
   children,
@@ -158,14 +155,16 @@ export const createAppLayoutFile = () => {
   });
   const layoutExists = existsSync(layoutPath);
 
-  if (!layoutExists) createFile(layoutPath, defaultAppLayout);
+  if (!layoutExists) {
+    createFile(layoutPath, defaultAppLayout);
+  }
 };
 
 const defaultAuthLayout = (
   authUtils: string
 ) => `import { getUserAuth } from "${formatFilePath(authUtils, {
-  removeExtension: true,
   prefix: "alias",
+  removeExtension: true,
 })}";
 import { redirect } from "next/navigation";
 
@@ -190,8 +189,9 @@ export const createAuthLayoutFile = () => {
 
   const layoutExists = existsSync(layoutPath);
 
-  if (!layoutExists)
+  if (!layoutExists) {
     createFile(layoutPath, defaultAuthLayout(shared.auth.authUtils));
+  }
 };
 
 const landingPage = `/**
@@ -386,8 +386,9 @@ export const createLandingPage = () => {
     removeExtension: false,
   });
   const lpContent = readFileSync(rootPath, "utf-8");
-  const alreadyUpdated =
-    lpContent.indexOf("v0 by Vercel") === -1 ? false : true;
+  const alreadyUpdated = lpContent.indexOf("v0 by Vercel") !== -1;
 
-  if (alreadyUpdated === false) replaceFile(rootPath, landingPage);
+  if (alreadyUpdated === false) {
+    replaceFile(rootPath, landingPage);
+  }
 };

@@ -1,10 +1,10 @@
-import path from "path";
-import fs from "fs";
-import { DBType } from "../../../../types.js";
+import fs from "node:fs";
+import path from "node:path";
+import type { DBType } from "../../../../types.js";
 
 export const prismaDbTypeMappings: { [key in DBType]: string } = {
-  pg: "postgresql",
   mysql: "mysql",
+  pg: "postgresql",
   sqlite: "sqlite",
 };
 
@@ -16,14 +16,14 @@ export const addScriptsToPackageJsonForPrisma = (driver: DBType) => {
   const packageJsonData = fs.readFileSync(packageJsonPath, "utf-8");
 
   // Parse package.json content
-  let packageJson = JSON.parse(packageJsonData);
+  const packageJson = JSON.parse(packageJsonData);
 
   const newItems = {
-    dev: "prisma generate && next dev",
     build: "prisma generate && next build",
-    "db:generate": `prisma generate`,
-    "db:migrate": `prisma migrate dev`,
-    ...(driver !== "pg" ? { "db:push": `prisma db push` } : {}),
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    dev: "prisma generate && next dev",
+    ...(driver === "pg" ? {} : { "db:push": "prisma db push" }),
     "db:studio": "prisma studio",
   };
   packageJson.scripts = {

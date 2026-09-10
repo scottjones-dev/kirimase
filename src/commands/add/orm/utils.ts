@@ -1,14 +1,14 @@
+import fs from "node:fs";
+import path from "node:path";
 import { consola } from "consola";
-import { DBProvider, DBType, PMType } from "../../../types.js";
+import { execa } from "execa";
+import stripJsonComments from "strip-json-comments";
+import type { DBProvider, DBType, PMType } from "../../../types.js";
 import {
   pmInstallCommand,
   readConfigFile,
   replaceFile,
 } from "../../../utils.js";
-import { execa } from "execa";
-import fs from "fs";
-import path from "path";
-import stripJsonComments from "strip-json-comments";
 
 export const generateDbUrl = (dbType: DBType, provider?: DBProvider) => {
   let databaseUrl = "";
@@ -21,8 +21,9 @@ export const generateDbUrl = (dbType: DBType, provider?: DBProvider) => {
     databaseUrl = "postgres://postgres:postgres@localhost:5432/{DB_NAME}";
   }
 
-  if (provider !== null && provider === "neon")
+  if (provider !== null && provider === "neon") {
     databaseUrl = databaseUrl.concat("?sslmode=require");
+  }
   return databaseUrl;
 };
 
@@ -51,7 +52,7 @@ export const prismaFormat = async (packageManager: PMType) => {
   }
 };
 
-export async function updateTsConfigPrismaTypeAlias() {
+export function updateTsConfigPrismaTypeAlias() {
   // Define the path to the tsconfig.json file
   const { alias } = readConfigFile();
   const tsConfigPath = path.join(process.cwd(), "tsconfig.json");

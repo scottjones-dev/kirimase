@@ -1,7 +1,6 @@
 import { formatFilePath, getFilePaths } from "../../../filePaths/index.js";
 
-export const generateAuthUtils = () => {
-  return `import {
+export const generateAuthUtils = () => `import {
   getKindeServerSession,
 } from "@kinde-oss/kinde-auth-nextjs/server";
 import { redirect } from "next/navigation";
@@ -40,20 +39,18 @@ export const checkAuth = async () => {
    if (session === null) redirect("/api/auth/login");
 };
 `;
-};
 
-export const generateKindeRouteHandler = () => {
-  return `import { handleAuth } from "@kinde-oss/kinde-auth-nextjs/server";
+export const generateKindeRouteHandler =
+  () => `import { handleAuth } from "@kinde-oss/kinde-auth-nextjs/server";
 
 export const GET = handleAuth();
 `;
-};
 
 export const generateSignInComponent = () => {
   const { shared } = getFilePaths();
   return `import { getUserAuth } from "${formatFilePath(shared.auth.authUtils, {
-    removeExtension: true,
     prefix: "alias",
+    removeExtension: true,
   })}";
 import {
   LoginLink,
@@ -86,8 +83,8 @@ export default async function SignIn() {
 `;
 };
 
-export const generateSignInPage = () => {
-  return `import SignIn from "${formatFilePath("components/auth/SignIn", { prefix: "alias", removeExtension: false })}";
+export const generateSignInPage =
+  () => `import SignIn from "${formatFilePath("components/auth/SignIn", { prefix: "alias", removeExtension: false })}";
 
 const Page = async () => {
   return (
@@ -104,4 +101,3 @@ const Page = async () => {
 
 export default Page;
 `;
-};

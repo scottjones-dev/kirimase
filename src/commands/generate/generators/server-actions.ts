@@ -1,6 +1,6 @@
 import { createFile } from "../../../utils.js";
 import { formatFilePath } from "../../filePaths/index.js";
-import { Schema } from "../types.js";
+import type { Schema } from "../types.js";
 import { formatTableName } from "../utils.js";
 
 export const scaffoldServerActions = (schema: Schema) => {
@@ -42,8 +42,8 @@ import {
   insert${tableNameSingularCapitalised}Params,
   update${tableNameSingularCapitalised}Params,
 } from "${formatFilePath(`lib/db/schema/${tableNameCamelCase}.ts`, {
-    removeExtension: true,
     prefix: "alias",
+    removeExtension: true,
   })}";
 
 const handleErrors = (e: unknown) => {

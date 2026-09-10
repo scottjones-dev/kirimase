@@ -10,10 +10,10 @@
 //    }
 // }
 
-import { existsSync, readFileSync } from "fs";
-import { DBProvider, DBType } from "../../../../types.js";
-import { replaceFile } from "../../../../utils.js";
+import { existsSync, readFileSync } from "node:fs";
 import { consola } from "consola";
+import type { DBProvider, DBType } from "../../../../types.js";
+import { replaceFile } from "../../../../utils.js";
 import {
   formatFilePath,
   getDbIndexPath,
@@ -21,16 +21,17 @@ import {
 } from "../../../filePaths/index.js";
 import { updateRootSchema } from "../../../generate/generators/model/utils.js";
 
-export type LuciaAdapterInfo = {
-  import: string;
+export interface LuciaAdapterInfo {
   adapter: string;
   adapterPackage: string;
-};
+  import: string;
+}
 
 export const generateDrizzleAdapterDriverMappings = () => {
-  const dbIndex = getDbIndexPath();
+  const _dbIndex = getDbIndexPath();
   const pgAdapter = {
-    adapter: `export const adapter = new DrizzlePostgreSQLAdapter(db, sessions, users);`,
+    adapter:
+      "export const adapter = new DrizzlePostgreSQLAdapter(db, sessions, users);",
     adapterPackage: "@lucia-auth/adapter-drizzle",
     import: `import { DrizzlePostgreSQLAdapter } from "@lucia-auth/adapter-drizzle";
 import { sessions, users } from "../db/schema/auth";
@@ -38,7 +39,8 @@ import { sessions, users } from "../db/schema/auth";
   };
 
   const mySqlAdapter = {
-    adapter: `export const adapter = new DrizzleMySQLAdapter(db, sessions, users);`,
+    adapter:
+      "export const adapter = new DrizzleMySQLAdapter(db, sessions, users);",
     adapterPackage: "@lucia-auth/adapter-drizzle",
     import: `import { DrizzleMySQLAdapter } from "@lucia-auth/adapter-drizzle";
 import { sessions, users } from "../db/schema/auth";
@@ -46,7 +48,8 @@ import { sessions, users } from "../db/schema/auth";
   };
 
   const sqliteAdapter = {
-    adapter: `export const adapter = new DrizzleSQLiteAdapter(db, sessions, users);`,
+    adapter:
+      "export const adapter = new DrizzleSQLiteAdapter(db, sessions, users);",
     adapterPackage: "@lucia-auth/adapter-drizzle",
     import: `import { DrizzleSQLiteAdapter } from "@lucia-auth/adapter-drizzle";
 import { sessions, users } from "../db/schema/auth";
@@ -54,20 +57,20 @@ import { sessions, users } from "../db/schema/auth";
   };
 
   const DrizzleAdapterDriverMappings: {
-    [k in DBType]: Partial<{
-      [k in DBProvider]: LuciaAdapterInfo;
+    [databaseType in DBType]: Partial<{
+      [databaseProvider in DBProvider]: LuciaAdapterInfo;
     }>;
   } = {
-    pg: {
-      neon: pgAdapter,
-      supabase: pgAdapter,
-      postgresjs: pgAdapter,
-      "node-postgres": pgAdapter,
-      "vercel-pg": pgAdapter,
-    },
     mysql: {
       "mysql-2": mySqlAdapter,
       planetscale: mySqlAdapter,
+    },
+    pg: {
+      neon: pgAdapter,
+      "node-postgres": pgAdapter,
+      postgresjs: pgAdapter,
+      supabase: pgAdapter,
+      "vercel-pg": pgAdapter,
     },
     sqlite: {
       "better-sqlite3": sqliteAdapter,
@@ -78,27 +81,6 @@ import { sessions, users } from "../db/schema/auth";
 };
 
 export const DrizzleLuciaSchema: { [k in DBType]: string } = {
-  pg: `import { z } from "zod";  
-import { pgTable, timestamp, text } from "drizzle-orm/pg-core";
-
-export const users = pgTable("user", {
-	id: text("id").primaryKey(),
-        email: text("email").notNull().unique(),
-        hashedPassword: text("hashed_password").notNull(),
-        name: text("name"),
-});
-
-export const sessions = pgTable("session", {
-	id: text("id").primaryKey(),
-	userId: text("user_id")
-		.notNull()
-		.references(() => users.id),
-	expiresAt: timestamp("expires_at", {
-		withTimezone: true,
-		mode: "date"
-	}).notNull()
-});
-`,
   mysql: `import { z } from "zod";
 import { mysqlTable, varchar, datetime } from "drizzle-orm/mysql-core";
 
@@ -128,6 +110,27 @@ export const sessions = mysqlTable("session", {
 		.references(() => users.id),
 	expiresAt: datetime("expires_at").notNull()
 });`,
+  pg: `import { z } from "zod";  
+import { pgTable, timestamp, text } from "drizzle-orm/pg-core";
+
+export const users = pgTable("user", {
+	id: text("id").primaryKey(),
+        email: text("email").notNull().unique(),
+        hashedPassword: text("hashed_password").notNull(),
+        name: text("name"),
+});
+
+export const sessions = pgTable("session", {
+	id: text("id").primaryKey(),
+	userId: text("user_id")
+		.notNull()
+		.references(() => users.id),
+	expiresAt: timestamp("expires_at", {
+		withTimezone: true,
+		mode: "date"
+	}).notNull()
+});
+`,
   sqlite: `import { z } from "zod";
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 
@@ -166,13 +169,13 @@ model Session {
 
 export const generatePrismaAdapterDriverMappings = () => {
   const PrismaAdapterDriverMappings: LuciaAdapterInfo = {
+    adapter: "const adapter = new PrismaAdapter(db.session, db.user)",
+    adapterPackage: "@lucia-auth/adapter-prisma",
     import: `import { PrismaAdapter } from "@lucia-auth/adapter-prisma";;`,
-    adapter: `const adapter = new PrismaAdapter(db.session, db.user)`,
-    adapterPackage: `@lucia-auth/adapter-prisma`,
   };
   return PrismaAdapterDriverMappings;
 };
-export const addLuciaToPrismaSchema = async () => {
+export const addLuciaToPrismaSchema = () => {
   const schemaPath = "prisma/schema.prisma";
   const schemaExists = existsSync(schemaPath);
   if (schemaExists) {
@@ -183,7 +186,7 @@ export const addLuciaToPrismaSchema = async () => {
     replaceFile(schemaPath, newContent);
     // consola.success(`Added auth to Prisma schema`);
   } else {
-    consola.info(`Prisma schema file does not exist`);
+    consola.info("Prisma schema file does not exist");
   }
 };
 
@@ -195,8 +198,8 @@ export const updateDrizzleDbIndex = (provider: DBProvider) => {
     const replacementContent = `import { drizzle } from "drizzle-orm/planetscale-serverless";
 import { connect } from "@planetscale/database";
 import { env } from "${formatFilePath(shared.init.envMjs, {
-      removeExtension: false,
       prefix: "alias",
+      removeExtension: false,
     })}";
 import * as schema from "./schema";
  

@@ -1,17 +1,12 @@
-import { DBType } from "../../../../types.js";
+import type { DBType } from "../../../../types.js";
 import { readConfigFile } from "../../../../utils.js";
-import {
-  formatFilePath,
-  getDbIndexPath,
-  getFilePaths,
-} from "../../../filePaths/index.js";
+import { formatFilePath, getDbIndexPath } from "../../../filePaths/index.js";
 import { prismaDbTypeMappings } from "./utils.js";
 
 export const generatePrismaSchema = (
   dbType: DBType,
   usingPlanetscale: boolean
-) => {
-  return `// This is your Prisma schema file,
+) => `// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
@@ -36,10 +31,9 @@ datasource db {
 }
 
 `;
-};
 
-export const generatePrismaDbInstance = () => {
-  return `import { PrismaClient } from "@prisma/client";
+export const generatePrismaDbInstance =
+  () => `import { PrismaClient } from "@prisma/client";
 
 declare global {
   // allow global \`var\` declarations
@@ -55,7 +49,6 @@ export const db =
 
 if (process.env.NODE_ENV !== "production") global.db = db;
 `;
-};
 
 export const generatePrismaComputerModel = () => {
   const { alias } = readConfigFile();

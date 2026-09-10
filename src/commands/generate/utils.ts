@@ -1,27 +1,27 @@
-import path from "path";
+import fs, { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
+import { consola } from "consola";
 import pluralize from "pluralize";
-import {
+import type {
   DBField,
   DBType,
   DrizzleColumnType,
   PrismaColumnType,
 } from "../../types.js";
 import { readConfigFile, replaceFile } from "../../utils.js";
-import fs, { existsSync, readFileSync } from "fs";
-import { consola } from "consola";
-import { formatFilePath, getFilePaths } from "../filePaths/index.js";
-import { Schema } from "./types.js";
-
-import chalk from "chalk";
-import { TResource } from "./index.js";
 import { createNextStepsList, createNotesList } from "../add/utils.js";
+import { formatFilePath, getFilePaths } from "../filePaths/index.js";
+import type { TResource } from "./index.js";
+import type { Schema } from "./types.js";
 
 export function toCamelCase(input: string): string {
   return input
     .toLowerCase()
     .split("_")
     .map((word, index) => {
-      if (index === 0) return word; // Return the first word as is
+      if (index === 0) {
+        return word; // Return the first word as is
+      }
       return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(); // Capitalize the first letter of the rest
     })
     .join("");
@@ -84,28 +84,26 @@ export const formatTableName = (tableName: string) => {
 
   return {
     tableNameCamelCase,
+    tableNameCapitalised,
+    tableNameFirstChar,
+    tableNameKebabCase,
+    tableNameNormalEnglishCapitalised,
+    tableNameNormalEnglishLowerCase,
+    tableNameNormalEnglishSingular,
+    tableNameNormalEnglishSingularLowerCase,
+    tableNamePluralCapitalised,
     tableNameSingular,
     tableNameSingularCapitalised,
-    tableNamePluralCapitalised,
-    tableNameFirstChar,
-    tableNameCapitalised,
-    tableNameNormalEnglishCapitalised,
-    tableNameNormalEnglishSingular,
-    tableNameNormalEnglishLowerCase,
-    tableNameNormalEnglishSingularLowerCase,
-    tableNameKebabCase,
     tableNameSingularSnake,
   };
 };
 
 export type ReferenceType = "string" | "number";
-export const getReferenceFieldType = (type: ReferenceType) => {
-  return {
-    pg: type === "string" ? "varchar" : "integer",
-    mysql: type === "string" ? "varchar" : "int",
-    sqlite: type === "string" ? "text" : "integer",
-  };
-};
+export const getReferenceFieldType = (type: ReferenceType) => ({
+  mysql: type === "string" ? "varchar" : "int",
+  pg: type === "string" ? "varchar" : "integer",
+  sqlite: type === "string" ? "text" : "integer",
+});
 
 const excludedTypes: Array<DrizzleColumnType | PrismaColumnType> = [
   "text",
@@ -114,9 +112,8 @@ const excludedTypes: Array<DrizzleColumnType | PrismaColumnType> = [
   "String",
 ];
 
-export const getNonStringFields = (fields: DBField[]) => {
-  return fields.filter((field) => !excludedTypes.includes(field.type));
-};
+export const getNonStringFields = (fields: DBField[]) =>
+  fields.filter((field) => !excludedTypes.includes(field.type));
 
 type ZodType = "string" | "number" | "boolean" | "date" | "bigint" | "object";
 
@@ -124,29 +121,29 @@ const DrizzleToZodMappings: Record<
   DBType,
   Partial<Record<DrizzleColumnType, ZodType>>
 > = {
-  pg: {
-    number: "number",
-    date: "string",
+  mysql: {
     boolean: "boolean",
+    date: "string",
     float: "number",
+    number: "number",
     references: "string",
     timestamp: "string",
     // json: "object",
   },
-  mysql: {
-    number: "number",
-    date: "string",
+  pg: {
     boolean: "boolean",
+    date: "string",
     float: "number",
+    number: "number",
     references: "string",
     timestamp: "string",
     // json: "object",
   },
   sqlite: {
-    number: "number",
-    date: "date",
     boolean: "boolean",
+    date: "date",
     float: "number",
+    number: "number",
     references: "string",
     timestamp: "date",
     // json: "object",
@@ -154,18 +151,21 @@ const DrizzleToZodMappings: Record<
 };
 
 const PrismaToZodMappings: Record<PrismaColumnType, ZodType> = {
-  Int: "number",
-  Float: "number",
-  Decimal: "number",
-  String: "string",
+  BigInt: "bigint",
   Boolean: "boolean",
   DateTime: "date",
-  BigInt: "bigint",
+  Decimal: "number",
+  Float: "number",
+  Int: "number",
   // Json: "object",
   References: "string",
+  String: "string",
 };
 
-export type ZodMapping = { name: string; type: ZodType };
+export interface ZodMapping {
+  name: string;
+  type: ZodType;
+}
 
 export const getZodMappings = (fields: DBField[]) => {
   const { driver, orm } = readConfigFile();
@@ -177,7 +177,8 @@ export const getZodMappings = (fields: DBField[]) => {
         type: zodType,
       };
     });
-  } else if (orm === "prisma") {
+  }
+  if (orm === "prisma") {
     return fields.map((field) => {
       const zodType = PrismaToZodMappings[field.type];
       return {
@@ -192,71 +193,71 @@ export const defaultValueMappings: Record<
   DBType,
   Partial<Record<DrizzleColumnType | PrismaColumnType, string>>
 > = {
-  pg: {
-    string: '""',
-    number: "0",
-    boolean: "false",
-    // blob: '""',
-    date: '""',
-    // json: '""',
-    text: '""',
-    float: "0.0",
-    varchar: '""',
-    timestamp: '""',
-    references: '""',
-    Int: "0",
-    // Json: '""',
-    DateTime: "new Date()",
-    Boolean: "false",
-    String: '""',
-    Float: "0.0",
-    Decimal: "0.0",
-    BigInt: "0",
-    References: '""',
-  },
   mysql: {
-    string: '""',
-    number: "0",
+    BigInt: "0",
+    Boolean: "false",
     boolean: "false",
-    // blob: '""',
-    date: '""',
-    // json: '""',
-    text: '""',
-    float: "0.0",
-    varchar: '""',
-    timestamp: '""',
-    references: '""',
-    Int: "0",
     // Json: '""',
     DateTime: "new Date()",
-    Boolean: "false",
-    String: '""',
-    Float: "0.0",
     Decimal: "0.0",
-    BigInt: "0",
+    // blob: '""',
+    date: '""',
+    Float: "0.0",
+    float: "0.0",
+    Int: "0",
+    number: "0",
     References: '""',
+    references: '""',
+    String: '""',
+    string: '""',
+    // json: '""',
+    text: '""',
+    timestamp: '""',
+    varchar: '""',
+  },
+  pg: {
+    BigInt: "0",
+    Boolean: "false",
+    boolean: "false",
+    // Json: '""',
+    DateTime: "new Date()",
+    Decimal: "0.0",
+    // blob: '""',
+    date: '""',
+    Float: "0.0",
+    float: "0.0",
+    Int: "0",
+    number: "0",
+    References: '""',
+    references: '""',
+    String: '""',
+    string: '""',
+    // json: '""',
+    text: '""',
+    timestamp: '""',
+    varchar: '""',
   },
   sqlite: {
-    string: '""',
-    number: "0",
+    BigInt: "0",
+    Boolean: "false",
     boolean: "false",
-    // blob: '""',
-    date: "new Date()",
-    // json: '""',
-    text: '""',
-    float: "0.0",
-    varchar: '""',
-    timestamp: "new Date()",
-    references: '""',
-    Int: "0",
     // Json: '""',
     DateTime: "new Date()",
-    Boolean: "false",
-    String: '""',
-    Float: "0.0",
     Decimal: "0.0",
-    BigInt: "0",
+    // blob: '""',
+    date: "new Date()",
+    Float: "0.0",
+    float: "0.0",
+    Int: "0",
+    number: "0",
     References: '""',
+    references: '""',
+    String: '""',
+    string: '""',
+    // json: '""',
+    text: '""',
+    timestamp: "new Date()",
+    varchar: '""',
   },
 };
 
@@ -280,8 +281,8 @@ export function getCurrentSchemas() {
   const { shared } = getFilePaths();
   if (orm === "drizzle") {
     const directory = formatFilePath(shared.orm.schemaDir, {
-      removeExtension: false,
       prefix: "rootPath",
+      removeExtension: false,
     });
 
     try {
@@ -296,7 +297,7 @@ export function getCurrentSchemas() {
       return schemaNames.filter(
         (schema) => schema !== "auth" && schema !== "_root"
       );
-    } catch (error) {
+    } catch {
       // console.error(`Error reading schemas ${directory}:`, error);
       return [];
     }
@@ -323,10 +324,9 @@ export function getCurrentSchemas() {
           pluralize.plural(`${item[0].toLowerCase()}${item.slice(1)}`)
         );
       return schemaNames;
-    } else {
-      consola.info(`Prisma schema file does not exist`);
-      return [];
     }
+    consola.info("Prisma schema file does not exist");
+    return [];
   }
 }
 
@@ -354,7 +354,7 @@ export const addToPrismaSchema = (schema: string, modelName: string) => {
       // consola.success(`Added ${modelName} to Prisma schema`);
     }
   } else {
-    consola.info(`Prisma schema file does not exist`);
+    consola.info("Prisma schema file does not exist");
   }
 };
 
@@ -365,8 +365,8 @@ export const formatPrismaModelName = (name: string) => {
   const pluralLowerCase = pluralize.plural(lowerCase);
 
   return {
-    lowerCase,
     firstLetter,
+    lowerCase,
     plural,
     pluralLowerCase,
   };
@@ -382,7 +382,7 @@ const getPrismaModelStartAndEnd = (schema: string, modelName: string) => {
   if (modelEnd === -1) {
     modelExists = false;
   }
-  return { modelStart, modelEnd, modelExists };
+  return { modelEnd, modelExists, modelStart };
 };
 
 export function addToPrismaModel(modelName: string, attributesToAdd: string) {
@@ -399,11 +399,10 @@ export function addToPrismaModel(modelName: string, attributesToAdd: string) {
     // Find the start and end positions of the specified model
     const { modelEnd } = getPrismaModelStartAndEnd(schema, modelName);
     // Split the schema and insert the attributes at the right position
-    const beforeModelEnd = schema.substring(0, modelEnd);
-    const afterModelEnd = schema.substring(modelEnd);
+    const beforeModelEnd = schema.slice(0, modelEnd);
+    const afterModelEnd = schema.slice(modelEnd);
 
-    const newSchema =
-      beforeModelEnd + "  " + attributesToAdd + "\n" + afterModelEnd;
+    const newSchema = `${beforeModelEnd}  ${attributesToAdd}\n${afterModelEnd}`;
     replaceFile("prisma/schema.prisma", newSchema);
     consola.info("Updated Prisma schema");
   }
@@ -423,22 +422,21 @@ export function addToPrismaModelBulk(
     // Find the start and end positions of the specified model
     const { modelEnd } = getPrismaModelStartAndEnd(schema, modelName);
     // Split the schema and insert the attributes at the right position
-    const beforeModelEnd = schema.substring(0, modelEnd);
-    const afterModelEnd = schema.substring(modelEnd);
+    const beforeModelEnd = schema.slice(0, modelEnd);
+    const afterModelEnd = schema.slice(modelEnd);
 
-    const newSchema =
-      beforeModelEnd + "  " + attributesToAdd + "\n" + afterModelEnd;
+    const newSchema = `${beforeModelEnd}  ${attributesToAdd}\n${afterModelEnd}`;
     replaceFile("prisma/schema.prisma", newSchema);
     consola.info("Updated Prisma schema");
   }
 }
 
 const resourceMapping: Record<TResource, string> = {
-  model: "Model (schema file and queries/mutations functions)",
-  views_and_components_server_actions: "Views (powered by Server Actions)",
-  server_actions: "Server Actions",
   api_route: "API Route",
+  model: "Model (schema file and queries/mutations functions)",
+  server_actions: "Server Actions",
   trpc_route: "tRPC Route",
+  views_and_components_server_actions: "Views (powered by Server Actions)",
   views_and_components_trpc: "Views (powered by tRPC)",
 };
 

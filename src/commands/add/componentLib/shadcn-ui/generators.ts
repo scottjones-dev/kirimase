@@ -1,7 +1,8 @@
 import { readConfigFile } from "../../../../utils.js";
 
-const generateTailwindConfig = (rootPath: string) => {
-  return `const { fontFamily } = require("tailwindcss/defaultTheme")
+const generateTailwindConfig = (
+  rootPath: string
+) => `const { fontFamily } = require("tailwindcss/defaultTheme")
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -78,10 +79,8 @@ module.exports = {
   plugins: [require("tailwindcss-animate")],
 }
 `;
-};
 
-const generateGlobalsCss = () => {
-  return `@tailwind base;
+const generateGlobalsCss = () => `@tailwind base;
 @tailwind components;
 @tailwind utilities;
  
@@ -158,17 +157,14 @@ const generateGlobalsCss = () => {
   }
 }
 `;
-};
 
-const generateLibUtilsTs = () => {
-  return `import { clsx, type ClassValue } from "clsx"
+const generateLibUtilsTs = () => `import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 `;
-};
 
 const generateComponentsJson = (rootPath: string) => {
   const { alias } = readConfigFile();
@@ -192,8 +188,7 @@ const generateComponentsJson = (rootPath: string) => {
 `;
 };
 
-const generateThemeProvider = () => {
-  return `"use client";
+const generateThemeProvider = () => `"use client";
 
 import * as React from "react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
@@ -203,7 +198,6 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
   return <NextThemesProvider {...props}>{children}</NextThemesProvider>;
 }
 `;
-};
 
 const generateThemeToggler = () => {
   const { alias } = readConfigFile();
@@ -251,10 +245,10 @@ export function ModeToggle() {
 };
 
 export const shadcnGenerators = {
-  generateTailwindConfig,
-  generateLibUtilsTs,
-  generateGlobalsCss,
   generateComponentsJson,
+  generateGlobalsCss,
+  generateLibUtilsTs,
+  generateTailwindConfig,
   generateThemeProvider,
   generateThemeToggler,
 };

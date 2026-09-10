@@ -6,29 +6,26 @@
 // 6. Add lib/auth/utils.ts
 // 7. install package - @clerk/nextjs
 
-import { consola } from "consola";
+import type { InitOptions } from "../../../../types.js";
 import {
   addPackageToConfig,
   createFile,
-  installPackages,
   readConfigFile,
   replaceFile,
   updateConfigFile,
 } from "../../../../utils.js";
+import { formatFilePath, getFilePaths } from "../../../filePaths/index.js";
 import { addToDotEnv } from "../../orm/drizzle/generators.js";
 import {
   addContextProviderToAppLayout,
   addContextProviderToAuthLayout,
   addToInstallList,
 } from "../../utils.js";
-import { clerkGenerators } from "./generators.js";
-import { formatFilePath, getFilePaths } from "../../../filePaths/index.js";
-import { libAuthUtilsTs } from "../next-auth/generators.js";
 import { updateTrpcWithSessionIfInstalled } from "../shared/index.js";
-import { InitOptions } from "../../../../types.js";
+import { clerkGenerators } from "./generators.js";
 
-export const addClerk = async (options: InitOptions) => {
-  const { rootPath, preferredPackageManager, componentLib } = readConfigFile();
+export const addClerk = (options: InitOptions) => {
+  const { rootPath, componentLib } = readConfigFile();
   const {
     clerk: { middleware, signInPage, signUpPage },
     shared: {
@@ -49,12 +46,12 @@ export const addClerk = async (options: InitOptions) => {
   }
   addToDotEnv(
     [
-      { key: "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY", value: "", public: true },
+      { key: "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY", public: true, value: "" },
       { key: "CLERK_SECRET_KEY", value: "" },
-      { key: "NEXT_PUBLIC_CLERK_SIGN_IN_URL", value: "/sign-in", public: true },
-      { key: "NEXT_PUBLIC_CLERK_SIGN_UP_URL", value: "/sign-up", public: true },
-      { key: "NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL", value: "/", public: true },
-      { key: "NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL", value: "/", public: true },
+      { key: "NEXT_PUBLIC_CLERK_SIGN_IN_URL", public: true, value: "/sign-in" },
+      { key: "NEXT_PUBLIC_CLERK_SIGN_UP_URL", public: true, value: "/sign-up" },
+      { key: "NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL", public: true, value: "/" },
+      { key: "NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL", public: true, value: "/" },
     ],
     rootPath
   );
@@ -66,23 +63,23 @@ export const addClerk = async (options: InitOptions) => {
   if (options.headless === undefined) {
     createFile(
       formatFilePath(signInPage, {
-        removeExtension: false,
         prefix: "rootPath",
+        removeExtension: false,
       }),
       generateSignInPageTs()
     );
     createFile(
       formatFilePath(signUpPage, {
-        removeExtension: false,
         prefix: "rootPath",
+        removeExtension: false,
       }),
       generateSignUpPageTs()
     );
 
     replaceFile(
       formatFilePath(init.dashboardRoute, {
-        removeExtension: false,
         prefix: "rootPath",
+        removeExtension: false,
       }),
       homePageWithUserButton(componentLib)
     );
@@ -99,7 +96,7 @@ export const addClerk = async (options: InitOptions) => {
   // If trpc installed, add protectedProcedure
   updateTrpcWithSessionIfInstalled();
 
-  addToInstallList({ regular: ["@clerk/nextjs"], dev: [] });
+  addToInstallList({ dev: [], regular: ["@clerk/nextjs"] });
   // await installPackages(
   //   { regular: "@clerk/nextjs", dev: "" },
   //   preferredPackageManager,

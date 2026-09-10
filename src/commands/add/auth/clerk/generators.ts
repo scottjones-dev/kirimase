@@ -1,8 +1,8 @@
-import { ComponentLibType } from "../../../../types.js";
+import type { ComponentLibType } from "../../../../types.js";
 import { formatFilePath, getFilePaths } from "../../../filePaths/index.js";
 
-const generateMiddlewareTs = () => {
-  return `import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+const generateMiddlewareTs =
+  () => `import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 
 // This example protects all routes including api/trpc routes
 // Please edit this to allow other routes to be public as needed.
@@ -14,11 +14,9 @@ export default clerkMiddleware((auth, req) => {
 });
 
 export const config = {
-  matcher: ['/((?!.+\\\\\.[\\\\\w]+$|_next).*)', '/', '/(api|trpc)(.*)'],
+  matcher: ['/((?!.+\\\\.[\\\\w]+$|_next).*)', '/', '/(api|trpc)(.*)'],
 };`;
-};
-const generateSignInPageTs = () => {
-  return `import { SignIn } from "@clerk/nextjs";
+const generateSignInPageTs = () => `import { SignIn } from "@clerk/nextjs";
 
 export default function Page() {
   return (
@@ -27,9 +25,7 @@ export default function Page() {
     </main>
   );
 }`;
-};
-const generateSignUpPageTs = () => {
-  return `import { SignUp } from "@clerk/nextjs";
+const generateSignUpPageTs = () => `import { SignUp } from "@clerk/nextjs";
 
 export default function Page() {
   return (
@@ -38,7 +34,6 @@ export default function Page() {
     </main>
   );
 }`;
-};
 const homePageWithUserButton = (componentLib: ComponentLibType) => {
   const {
     shared: {
@@ -51,8 +46,8 @@ const homePageWithUserButton = (componentLib: ComponentLibType) => {
       { prefix: "alias", removeExtension: true }
     )}";
 import { getUserAuth } from "${formatFilePath(authUtils, {
-      removeExtension: true,
       prefix: "alias",
+      removeExtension: true,
     })}";
 import Link from "next/link";
 
@@ -70,11 +65,11 @@ export default async function Home() {
   );
 }
 `;
-  } else {
-    return `import { getUserAuth } from "${formatFilePath(authUtils, {
-      removeExtension: true,
-      prefix: "alias",
-    })}";
+  }
+  return `import { getUserAuth } from "${formatFilePath(authUtils, {
+    prefix: "alias",
+    removeExtension: true,
+  })}";
 import Link from "next/link";
 
 export default async function Home() {
@@ -91,10 +86,8 @@ export default async function Home() {
   );
 }
 `;
-  }
 };
-const generateAuthUtilsTs = () => {
-  return `import { auth } from "@clerk/nextjs/server";
+const generateAuthUtilsTs = () => `import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
 export type AuthSession = {
@@ -129,12 +122,11 @@ export const checkAuth = async () => {
   const { userId } = auth();
   if (!userId) redirect("/sign-in");
 };`;
-};
 
 export const clerkGenerators = {
+  generateAuthUtilsTs,
   generateMiddlewareTs,
   generateSignInPageTs,
   generateSignUpPageTs,
   homePageWithUserButton,
-  generateAuthUtilsTs,
 };

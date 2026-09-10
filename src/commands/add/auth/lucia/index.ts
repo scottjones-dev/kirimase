@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import type { InitOptions } from "../../../../types.js";
 import {
   addPackageToConfig,
   createFile,
@@ -5,25 +7,22 @@ import {
   replaceFile,
   updateConfigFile,
 } from "../../../../utils.js";
-import { luciaGenerators } from "./generators.js";
-import {
-  generateDrizzleAdapterDriverMappings,
-  DrizzleLuciaSchema,
-  generatePrismaAdapterDriverMappings,
-  addLuciaToPrismaSchema,
-  updateDrizzleDbIndex,
-  addNodeRsFlagsToNextConfig,
-} from "./utils.js";
-
-import fs from "fs";
 import {
   formatFilePath,
   getDbIndexPath,
   getFilePaths,
 } from "../../../filePaths/index.js";
-import { updateTrpcWithSessionIfInstalled } from "../shared/index.js";
 import { addToInstallList } from "../../utils.js";
-import { InitOptions } from "../../../../types.js";
+import { updateTrpcWithSessionIfInstalled } from "../shared/index.js";
+import { luciaGenerators } from "./generators.js";
+import {
+  addLuciaToPrismaSchema,
+  addNodeRsFlagsToNextConfig,
+  DrizzleLuciaSchema,
+  generateDrizzleAdapterDriverMappings,
+  generatePrismaAdapterDriverMappings,
+  updateDrizzleDbIndex,
+} from "./utils.js";
 
 export const addLucia = async (options: InitOptions) => {
   // get dbtype and provider
@@ -36,7 +35,7 @@ export const addLucia = async (options: InitOptions) => {
     generateUserServerActions,
   } = luciaGenerators;
 
-  const { lucia, shared, drizzle } = getFilePaths();
+  const { lucia, shared } = getFilePaths();
   const dbIndex = getDbIndexPath();
 
   // create auth form component
@@ -60,22 +59,22 @@ export const addLucia = async (options: InitOptions) => {
   if (options.headless === undefined) {
     createFile(
       formatFilePath(lucia.signInPage, {
-        removeExtension: false,
         prefix: "rootPath",
+        removeExtension: false,
       }),
       viewsAndComponents.signInPage
     );
     createFile(
       formatFilePath(lucia.signUpPage, {
-        removeExtension: false,
         prefix: "rootPath",
+        removeExtension: false,
       }),
       viewsAndComponents.signUpPage
     );
     replaceFile(
       formatFilePath(shared.init.dashboardRoute, {
-        removeExtension: false,
         prefix: "rootPath",
+        removeExtension: false,
       }),
       viewsAndComponents.homePage
     );
@@ -86,16 +85,16 @@ export const addLucia = async (options: InitOptions) => {
   }
   createFile(
     formatFilePath(lucia.formErrorComponent, {
-      removeExtension: false,
       prefix: "rootPath",
+      removeExtension: false,
     }),
     viewsAndComponents.authFormErrorComponent
   );
 
   createFile(
     formatFilePath(lucia.signOutButtonComponent, {
-      removeExtension: false,
       prefix: "rootPath",
+      removeExtension: false,
     }),
     viewsAndComponents.updatedSignOutButton
   );
@@ -103,8 +102,8 @@ export const addLucia = async (options: InitOptions) => {
   // add server actions
   createFile(
     formatFilePath(lucia.usersActions, {
-      removeExtension: false,
       prefix: "rootPath",
+      removeExtension: false,
     }),
     generateUserServerActions()
   );
@@ -113,8 +112,8 @@ export const addLucia = async (options: InitOptions) => {
   // create auth/utils.ts
   createFile(
     formatFilePath(shared.auth.authUtils, {
-      removeExtension: false,
       prefix: "rootPath",
+      removeExtension: false,
     }),
     authDirFiles.utilsTs
   );
@@ -122,8 +121,8 @@ export const addLucia = async (options: InitOptions) => {
   // create auth/lucia.ts
   createFile(
     formatFilePath(lucia.libAuthLucia, {
-      removeExtension: false,
       prefix: "rootPath",
+      removeExtension: false,
     }),
     authDirFiles.luciaTs
   );
@@ -133,8 +132,8 @@ export const addLucia = async (options: InitOptions) => {
     await addLuciaToPrismaSchema();
     createFile(
       formatFilePath(shared.auth.authSchema, {
-        removeExtension: false,
         prefix: "rootPath",
+        removeExtension: false,
       }),
       `import { z } from "zod";
 
@@ -181,16 +180,16 @@ export type UsernameAndPassword = z.infer<typeof authenticationSchema>;
       );
       createFile(
         formatFilePath(shared.auth.authSchema, {
-          removeExtension: false,
           prefix: "rootPath",
+          removeExtension: false,
         }),
         schemaWithoutReferences
       );
     } else {
       createFile(
         formatFilePath(shared.auth.authSchema, {
-          removeExtension: false,
           prefix: "rootPath",
+          removeExtension: false,
         }),
         schemaWithZodSchemas
       );
@@ -204,7 +203,9 @@ export type UsernameAndPassword = z.infer<typeof authenticationSchema>;
       removeExtension: false,
     });
     const dbTsExists = fs.existsSync(dbTsPath);
-    if (!dbTsExists) return;
+    if (!dbTsExists) {
+      return;
+    }
 
     const dbTsContents = fs.readFileSync(dbTsPath, {
       encoding: "utf-8",
@@ -240,6 +241,7 @@ export type UsernameAndPassword = z.infer<typeof authenticationSchema>;
   addNodeRsFlagsToNextConfig();
 
   addToInstallList({
+    dev: [],
     regular: [
       "lucia",
       "oslo",
@@ -247,7 +249,6 @@ export type UsernameAndPassword = z.infer<typeof authenticationSchema>;
       "@node-rs/argon2",
       adapterPackage,
     ],
-    dev: [],
   });
 
   // add package to config

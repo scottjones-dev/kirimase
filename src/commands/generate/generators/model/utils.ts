@@ -1,25 +1,29 @@
-import { existsSync, readFileSync } from "fs";
+import { existsSync, readFileSync } from "node:fs";
+import type { AuthType } from "../../../../types.js";
 import { createFile, readConfigFile, replaceFile } from "../../../../utils.js";
-import { ORMTypeMap, TypeMap } from "../../types.js";
+import { formatFilePath, getFilePaths } from "../../../filePaths/index.js";
+import type { ORMTypeMap, TypeMap } from "../../types.js";
 import {
   formatTableName,
   getReferenceFieldType,
   toCamelCase,
 } from "../../utils.js";
-import { formatFilePath, getFilePaths } from "../../../filePaths/index.js";
-import { AuthType } from "../../../../types.js";
 
 export const prismaMappings = {
   typeMappings: {
-    String: ({ name, notNull }) =>
-      `${toCamelCase(name)} String${notNull ? "" : "?"}`,
-    Int: ({ name, notNull }) => `${toCamelCase(name)} Int${notNull ? "" : "?"}`,
     BigInt: ({ name, notNull }) =>
       `${toCamelCase(name)} BigInt${notNull ? "" : "?"}`,
-    Float: ({ name, notNull }) =>
-      `${toCamelCase(name)} Float${notNull ? "" : "?"}`,
     Boolean: ({ name, notNull }) =>
       `${toCamelCase(name)} Boolean${notNull ? "" : "?"}`,
+    DateTime: ({ name, notNull }) =>
+      `${toCamelCase(name)} DateTime${notNull ? "" : "?"}`,
+    // Json: ({ name, notNull }) =>
+    //   `${toCamelCase(name)} Json${notNull ? "" : "?"}`,
+    Decimal: ({ name, notNull }) =>
+      `${toCamelCase(name)} Decimal${notNull ? "" : "?"}`,
+    Float: ({ name, notNull }) =>
+      `${toCamelCase(name)} Float${notNull ? "" : "?"}`,
+    Int: ({ name, notNull }) => `${toCamelCase(name)} Int${notNull ? "" : "?"}`,
     References: ({ references, cascade, notNull }) => {
       const { tableNameSingular, tableNameSingularCapitalised } =
         formatTableName(references);
@@ -30,12 +34,8 @@ export const prismaMappings = {
         cascade ? ", onDelete: Cascade" : ""
       })\n  ${tableNameSingular}Id String`;
     },
-    DateTime: ({ name, notNull }) =>
-      `${toCamelCase(name)} DateTime${notNull ? "" : "?"}`,
-    // Json: ({ name, notNull }) =>
-    //   `${toCamelCase(name)} Json${notNull ? "" : "?"}`,
-    Decimal: ({ name, notNull }) =>
-      `${toCamelCase(name)} Decimal${notNull ? "" : "?"}`,
+    String: ({ name, notNull }) =>
+      `${toCamelCase(name)} String${notNull ? "" : "?"}`,
   },
 } as TypeMap;
 
@@ -43,50 +43,22 @@ export const createOrmMappings = () => {
   const { provider, auth } = readConfigFile();
   return {
     drizzle: {
-      pg: {
-        tableFunc: "pgTable",
-        typeMappings: {
-          id: ({ name }) =>
-            `varchar("${name}", { length: 191 }).primaryKey().$defaultFn(() => nanoid())`,
-          varchar: ({ name }) => `varchar("${name}", { length: 256 })`,
-          text: ({ name }) => `text("${name}")`,
-          number: ({ name }) => `integer("${name}")`,
-          float: ({ name }) => `real("${name}")`,
-          boolean: ({ name }) => `boolean("${name}")`,
-          references: ({
-            name,
-            references: referencedTable = "REFERENCE",
-            cascade,
-            referenceIdType = "string",
-          }) =>
-            `${getReferenceFieldType(referenceIdType)["pg"]}("${name}"${
-              referenceIdType === "string" ? ", { length: 256 }" : ""
-            }).references(() => ${toCamelCase(referencedTable)}.id${
-              cascade ? ', { onDelete: "cascade" }' : ""
-            })`,
-          // Add more types here as needed
-          timestamp: ({ name }) => `timestamp("${name}")`,
-          date: ({ name }) => `date("${name}")`,
-          // json: ({ name }) => `json("${name}")`,
-        },
-      },
       mysql: {
         tableFunc: "mysqlTable",
         typeMappings: {
+          boolean: ({ name }) => `boolean("${name}")`,
+          date: ({ name }) => `date("${name}")`,
+          float: ({ name }) => `real("${name}")`,
           id: ({ name }) =>
             `varchar("${name}", { length: 191 }).primaryKey().$defaultFn(() => nanoid())`,
-          varchar: ({ name }) => `varchar("${name}", { length: 256 })`,
-          text: ({ name }) => `text("${name}")`,
           number: ({ name }) => `int("${name}")`,
-          float: ({ name }) => `real("${name}")`,
-          boolean: ({ name }) => `boolean("${name}")`,
           references: ({
             name,
             references: referencedTable = "REFERENCE",
             cascade,
             referenceIdType = "string",
           }) =>
-            `${getReferenceFieldType(referenceIdType)["mysql"]}("${name}"${
+            `${getReferenceFieldType(referenceIdType).mysql}("${name}"${
               referenceIdType === "string" ? ", { length: 256 }" : ""
             })${
               provider === "planetscale"
@@ -95,33 +67,61 @@ export const createOrmMappings = () => {
                     cascade ? ', { onDelete: "cascade" }' : ""
                   })`
             }`,
-          date: ({ name }) => `date("${name}")`,
+          text: ({ name }) => `text("${name}")`,
           timestamp: ({ name }) => `timestamp("${name}")`,
+          varchar: ({ name }) => `varchar("${name}", { length: 256 })`,
           // json: ({ name }) => `json("${name}")`,
         },
       },
-      sqlite: {
-        tableFunc: "sqliteTable",
+      pg: {
+        tableFunc: "pgTable",
         typeMappings: {
+          boolean: ({ name }) => `boolean("${name}")`,
+          date: ({ name }) => `date("${name}")`,
+          float: ({ name }) => `real("${name}")`,
           id: ({ name }) =>
-            `text("${name}").primaryKey().$defaultFn(() => nanoid())`,
-          string: ({ name }) => `text("${name}")`,
+            `varchar("${name}", { length: 191 }).primaryKey().$defaultFn(() => nanoid())`,
           number: ({ name }) => `integer("${name}")`,
-          boolean: ({ name }) => `integer("${name}", { mode: "boolean" })`,
           references: ({
             name,
             references: referencedTable = "REFERENCE",
             cascade,
             referenceIdType = "string",
           }) =>
-            `${getReferenceFieldType(referenceIdType)["sqlite"]}("${name}")${
+            `${getReferenceFieldType(referenceIdType).pg}("${name}"${
+              referenceIdType === "string" ? ", { length: 256 }" : ""
+            }).references(() => ${toCamelCase(referencedTable)}.id${
+              cascade ? ', { onDelete: "cascade" }' : ""
+            })`,
+          text: ({ name }) => `text("${name}")`,
+          // Add more types here as needed
+          timestamp: ({ name }) => `timestamp("${name}")`,
+          varchar: ({ name }) => `varchar("${name}", { length: 256 })`,
+          // json: ({ name }) => `json("${name}")`,
+        },
+      },
+      sqlite: {
+        tableFunc: "sqliteTable",
+        typeMappings: {
+          boolean: ({ name }) => `integer("${name}", { mode: "boolean" })`,
+          date: ({ name }) => `integer("${name}", { mode: "timestamp" })`,
+          id: ({ name }) =>
+            `text("${name}").primaryKey().$defaultFn(() => nanoid())`,
+          number: ({ name }) => `integer("${name}")`,
+          references: ({
+            name,
+            references: referencedTable = "REFERENCE",
+            cascade,
+            referenceIdType = "string",
+          }) =>
+            `${getReferenceFieldType(referenceIdType).sqlite}("${name}")${
               auth === "lucia"
                 ? ""
                 : `.references(() => ${toCamelCase(referencedTable)}.id${
                     cascade ? ', { onDelete: "cascade" }' : ""
                   })`
             }`,
-          date: ({ name }) => `integer("${name}", { mode: "timestamp" })`,
+          string: ({ name }) => `text("${name}")`,
           timestamp: ({ name }) =>
             `integer("${name}", { mode: "timestamp_ms" })`,
           // blob: ({ name }) => `blob("${name}")`,
@@ -129,20 +129,18 @@ export const createOrmMappings = () => {
       },
     },
     prisma: {
-      pg: prismaMappings,
       mysql: prismaMappings,
+      pg: prismaMappings,
       sqlite: prismaMappings,
     },
   } as ORMTypeMap;
 };
 
-export const generateAuthCheck = (belongsToUser: boolean) => {
-  return belongsToUser ? "\n  const { session } = await getUserAuth();" : "";
-};
+export const generateAuthCheck = (belongsToUser: boolean) =>
+  belongsToUser ? "\n  const { session } = await getUserAuth();" : "";
 
-export const authForWhereClausePrisma = (belongsToUser: boolean) => {
-  return belongsToUser ? ", userId: session?.user.id!" : "";
-};
+export const authForWhereClausePrisma = (belongsToUser: boolean) =>
+  belongsToUser ? ", userId: session?.user.id!" : "";
 
 export const updateRootSchema = (
   tableName: string,
@@ -168,6 +166,10 @@ export const updateRootSchema = (
     case "lucia":
       tableNames = "keys, users, sessions";
       break;
+    default:
+      if (auth !== undefined) {
+        throw new Error(`Unsupported authentication type: ${auth}`);
+      }
   }
 
   const newImportStatement = usingAuth
@@ -205,8 +207,8 @@ export { ${usingAuth ? tableNames : tableNameCC} }`
     );
     // and also update db/index.ts to add extended model import
     const indexDbPath = formatFilePath(drizzle.dbIndex, {
-      removeExtension: false,
       prefix: "rootPath",
+      removeExtension: false,
     });
     const indexDbContents = readFileSync(indexDbPath, "utf-8");
     const updatedContentsWithImport = indexDbContents.replace(
@@ -215,8 +217,8 @@ export { ${usingAuth ? tableNames : tableNameCC} }`
 import * as extended from "~/server/db/schema/_root";`
     );
     const updatedContentsFinal = updatedContentsWithImport.replace(
-      `{ schema }`,
-      `{ schema: { ...schema, ...extended } }`
+      "{ schema }",
+      "{ schema: { ...schema, ...extended } }"
     );
     replaceFile(indexDbPath, updatedContentsFinal);
 

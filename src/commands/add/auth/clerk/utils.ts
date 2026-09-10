@@ -1,5 +1,5 @@
-import fs from "fs";
-import { createFile, replaceFile } from "../../../../utils.js";
+import fs from "node:fs";
+import { replaceFile } from "../../../../utils.js";
 import { formatFilePath, getFilePaths } from "../../../filePaths/index.js";
 
 // export const updateClerkMiddlewareForStripe = (rootPath: string) => {
@@ -23,7 +23,7 @@ import { formatFilePath, getFilePaths } from "../../../filePaths/index.js";
 export const addToClerkIgnoredRoutes = (newPath: string) => {
   const { clerk } = getFilePaths();
   const initMWContent = "ignoredRoutes: [";
-  const updatedMWContent = "ignoredRoutes: [" + ` "${newPath}", `;
+  const updatedMWContent = `ignoredRoutes: [ "${newPath}", `;
   const mwPath = formatFilePath(clerk.middleware, {
     prefix: "rootPath",
     removeExtension: false,

@@ -1,27 +1,24 @@
-import { consola } from "consola";
+import type { InitOptions } from "../../../../types.js";
 import {
   addPackageToConfig,
   createFile,
-  installPackages,
   readConfigFile,
   updateConfigFile,
 } from "../../../../utils.js";
 import { formatFilePath, getFilePaths } from "../../../filePaths/index.js";
 import { addToDotEnv } from "../../orm/drizzle/generators.js";
+import { addToInstallList } from "../../utils.js";
 import { generateUpdatedRootRoute } from "../next-auth/generators.js";
+import { updateTrpcWithSessionIfInstalled } from "../shared/index.js";
 import {
   generateAuthUtils,
   generateKindeRouteHandler,
   generateSignInComponent,
   generateSignInPage,
 } from "./generators.js";
-import { updateTrpcWithSessionIfInstalled } from "../shared/index.js";
-import { addToInstallList } from "../../utils.js";
-import { InitOptions } from "../../../../types.js";
 
-export const addKinde = async (options: InitOptions) => {
+export const addKinde = (options: InitOptions) => {
   const { kinde, shared } = getFilePaths();
-  const { preferredPackageManager } = readConfigFile();
   // add api route
   createFile(
     formatFilePath(kinde.routeHandler, {
@@ -92,7 +89,7 @@ export const addKinde = async (options: InitOptions) => {
   //   { regular: "@kinde-oss/kinde-auth-nextjs", dev: "" },
   //   preferredPackageManager,
   // );
-  addToInstallList({ regular: ["@kinde-oss/kinde-auth-nextjs"], dev: [] });
+  addToInstallList({ dev: [], regular: ["@kinde-oss/kinde-auth-nextjs"] });
 
   addPackageToConfig("kinde");
   updateConfigFile({ auth: "kinde" });

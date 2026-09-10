@@ -1,4 +1,4 @@
-import {
+import type {
   AuthType,
   DBField,
   DBProvider,
@@ -10,7 +10,7 @@ import { readConfigFile } from "../../../../../utils.js";
 import { checkTimestampsInUtils } from "../../../../add/orm/drizzle/utils.js";
 import { AuthSubTypeMapping } from "../../../../add/utils.js";
 import { formatFilePath, getFilePaths } from "../../../../filePaths/index.js";
-import { Schema, TypeMap } from "../../../types.js";
+import type { Schema, TypeMap } from "../../../types.js";
 import {
   addToPrismaModel,
   addToPrismaSchema,
@@ -29,7 +29,7 @@ const getUsedTypes = (fields: DBField[], mappings: TypeMap) => {
       return mappingFunction({ name: field.name }).split("(")[0];
     })
     .concat(
-      mappings.typeMappings["id"]({ name: "id" }).split("(")[0]
+      mappings.typeMappings.id({ name: "id" }).split("(")[0]
     ) as DrizzleColumnType[]; // Assuming number (int) is always used for the 'id' field
 };
 
@@ -47,15 +47,14 @@ const getUniqueTypes = (
   usedTypes: string[],
   belongsToUser: boolean,
   dbType: DBType
-) => {
-  return Array.from(
+) =>
+  Array.from(
     new Set(
       usedTypes.concat(
         belongsToUser ? [getReferenceFieldType("string")[dbType]] : []
       )
     )
   );
-};
 
 const generateImportStatement = (
   orm: ORMType,
@@ -76,8 +75,9 @@ const generateImportStatement = (
     const usedTypes = getUsedTypes(fields, mappings);
     const referenceImports = getReferenceImports(fields);
 
-    if (schema.includeTimestamps)
+    if (schema.includeTimestamps) {
       usedTypes.push(generateTimestampFieldsDrizzle().importType);
+    }
 
     const uniqueTypes = getUniqueTypes(usedTypes, belongsToUser, dbType);
     return `${
@@ -102,14 +102,14 @@ import { type get${tableNameCapitalised} } from "${formatFilePath(
     )}/${tableNameCamelCase}/queries";
 
 import { nanoid${
-      schema.includeTimestamps ? `, timestamps` : ""
+      schema.includeTimestamps ? ", timestamps" : ""
     } } from "${formatFilePath("lib/utils", {
       prefix: "alias",
       removeExtension: false,
     })}";
 `;
   }
-  if (orm === "prisma")
+  if (orm === "prisma") {
     return `import { ${tableNameSingular}Schema } from "${alias}/zodAutoGenSchemas";
 import { z } from "zod";${
       schema.includeTimestamps
@@ -124,10 +124,11 @@ import { get${tableNameCapitalised} } from "${formatFilePath(
       { prefix: "alias", removeExtension: false }
     )}/${tableNameCamelCase}/queries";
 `;
+  }
 };
 
-const generateFieldsForSchema = (fields: DBField[], mappings: TypeMap) => {
-  return fields
+const generateFieldsForSchema = (fields: DBField[], mappings: TypeMap) =>
+  fields
     .map(
       (field) =>
         `  ${toCamelCase(field.name)}: ${mappings.typeMappings[field.type](
@@ -135,7 +136,6 @@ const generateFieldsForSchema = (fields: DBField[], mappings: TypeMap) => {
         )}${field.notNull ? ".notNull()" : ""}`
     )
     .join(",\n");
-};
 
 const generateIndex = (schema: Schema) => {
   const { tableName, index } = schema;
@@ -161,12 +161,14 @@ const addUserReferenceIfBelongsToUser = (
 ) => {
   const authSubtype = AuthSubTypeMapping[authType];
   const value = schema.belongsToUser
-    ? `,\n  userId: ${mappings.typeMappings["references"]({
-        name: "user_id",
-        references: "users",
-        cascade: true,
-        referenceIdType: "string",
-      }).concat(".notNull()")}`
+    ? `,\n  userId: ${mappings.typeMappings
+        .references({
+          cascade: true,
+          name: "user_id",
+          referenceIdType: "string",
+          references: "users",
+        })
+        .concat(".notNull()")}`
     : "";
   const valueIfManaged = value.replace(
     `.references(() => users.id, { onDelete: "cascade" })`,
@@ -201,16 +203,16 @@ const generateDrizzleSchema = (
   const drizzleSchemaContent = `export const ${tableNameCamelCase} = ${
     mappings.tableFunc
   }('${tableName}', {
-  id: ${mappings.typeMappings["id"]({ name: "id" })},
+  id: ${mappings.typeMappings.id({ name: "id" })},
 ${userGeneratedFields}${addUserReferenceIfBelongsToUser(
-    schema,
-    mappings,
-    authType
-  )}${
-    schema.includeTimestamps
-      ? ",\n  ".concat(generateTimestampFieldsDrizzle().schemaContent)
-      : ""
-  }
+  schema,
+  mappings,
+  authType
+)}${
+  schema.includeTimestamps
+    ? ",\n  ".concat(generateTimestampFieldsDrizzle().schemaContent)
+    : ""
+}
 }${indexFormatted});\n`;
   // TODO TODO: ADD TIMESTAMPS HERE BETWEEN INDEX FORMATTED AND END CURLY
   return `${importStatement}\n\n${drizzleSchemaContent}\n\n${zodSchemas}`;
@@ -254,15 +256,15 @@ const generateTimestampFieldsDrizzle = () => {
 `;
       importType = "text";
       break;
+    default:
+      throw new Error("Timestamp fields require a database driver");
   }
-  return { schemaContent, importType };
+  return { importType, schemaContent };
 };
 
-const generateTimestampFieldsPrisma = () => {
-  return `
+const generateTimestampFieldsPrisma = () => `
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt`;
-};
 
 const generateIndexFields = (
   schema: Schema,
@@ -271,7 +273,7 @@ const generateIndexFields = (
 ): string => {
   const { index, belongsToUser } = schema;
   // Handle the case where index is null and there are no relations and usingPlanetscale is false
-  if (index === null && relations.length === 0 && !usingPlanetscale) {
+  if (!index && relations.length === 0 && !usingPlanetscale) {
     return "";
   }
 
@@ -279,7 +281,7 @@ const generateIndexFields = (
   let fields: string[] = [];
 
   // If there is an index, push it to fields array
-  if (index !== null) {
+  if (index) {
     fields.push(toCamelCase(index));
   }
 
@@ -334,13 +336,14 @@ const generatePrismaSchema = (
   }
 }`;
   addToPrismaSchema(prismaSchemaContent, tableNameSingularCapitalised);
-  if (schema.belongsToUser && authSubtype === "self-hosted")
+  if (schema.belongsToUser && authSubtype === "self-hosted") {
     addToPrismaModel(
       "User",
       `${tableNameCamelCase} ${tableNameSingularCapitalised}[]`
     );
+  }
 
-  relations.forEach((relation) => {
+  for (const relation of relations) {
     const { references } = relation;
     const { tableNameSingularCapitalised: singularCapitalised } =
       formatTableName(references);
@@ -348,7 +351,7 @@ const generatePrismaSchema = (
       singularCapitalised,
       `${tableNameCamelCase} ${tableNameSingularCapitalised}[]`
     );
-  });
+  }
   const importStatement = generateImportStatement(
     "prisma",
     schema,
@@ -363,7 +366,9 @@ export function generateModelContent(schema: Schema, dbType: DBType) {
   const { provider, orm, auth } = readConfigFile();
   const mappings = createOrmMappings()[orm][dbType];
   const zodSchemas = createZodSchemas(schema, orm);
-  if (schema.includeTimestamps) checkTimestampsInUtils();
+  if (schema.includeTimestamps) {
+    checkTimestampsInUtils();
+  }
 
   if (orm === "drizzle") {
     return generateDrizzleSchema(

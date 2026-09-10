@@ -1,17 +1,21 @@
-import { consola } from "consola";
 // import { execa } from "execa";
-import { existsSync } from "fs";
+import { existsSync } from "node:fs";
+import { consola } from "consola";
+import type {
+  AvailablePackage,
+  InitOptions,
+  PMType,
+} from "../../../../types.js";
 import {
   addPackageToConfig,
   createFile,
-  installPackages,
-  installShadcnUIComponents,
   // pmInstallCommand,
   readConfigFile,
   replaceFile,
   updateConfigFile,
 } from "../../../../utils.js";
-import { AvailablePackage, InitOptions, PMType } from "../../../../types.js";
+import { formatFilePath, getFilePaths } from "../../../filePaths/index.js";
+import { generateLoadingPage } from "../../auth/lucia/generators.js";
 import {
   addContextProviderToAppLayout,
   addContextProviderToRootLayout,
@@ -19,11 +23,9 @@ import {
   addToShadcnComponentList,
 } from "../../utils.js";
 import { shadcnGenerators } from "./generators.js";
-import { generateLoadingPage } from "../../auth/lucia/generators.js";
-import { formatFilePath, getFilePaths } from "../../../filePaths/index.js";
 
-const manualInstallShadCn = async (
-  preferredPackageManager: PMType,
+const manualInstallShadCn = (
+  _preferredPackageManager: PMType,
   rootPath: string,
   options: InitOptions
 ) => {
@@ -47,6 +49,7 @@ const manualInstallShadCn = async (
   // );
 
   addToInstallList({
+    dev: [],
     regular: [
       "tailwindcss-animate",
       "class-variance-authority",
@@ -55,7 +58,6 @@ const manualInstallShadCn = async (
       "lucide-react",
       "next-themes",
     ],
-    dev: [],
   });
 
   // add tailwind.config.ts
@@ -101,7 +103,7 @@ export const installShadcnUI = async (
     preferredPackageManager,
     rootPath,
   } = readConfigFile();
-  const packages = packagesBeingInstalled.concat(installedPackages);
+  const _packages = packagesBeingInstalled.concat(installedPackages);
   // consola.start("Installing Shadcn UI...");
   const filePath = "components.json";
 
