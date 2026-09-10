@@ -64,9 +64,8 @@ export const runCommand = async (command: string, args: string[]) => {
     });
   } catch (error) {
     throw new Error(
-      `command "${command} ${formattedArgs
-        .join(" ")
-        .trim()}" exited with code ${error.code}`
+      `Command "${command} ${formattedArgs.join(" ").trim()}" failed`,
+      { cause: error }
     );
   }
 };
@@ -141,7 +140,7 @@ export const readConfigFile = (): (Config & { rootPath: string }) | null => {
 
 export const addPackageToConfig = (packageName: AvailablePackage) => {
   const config = readConfigFile();
-  updateConfigFile({ packages: [...config?.packages, packageName] });
+  updateConfigFile({ packages: [...config.packages, packageName] });
 };
 
 export const wrapInParenthesis = (string: string) => `(${string})`;
@@ -250,7 +249,7 @@ type TAnalyticsEvent = "init_config" | "add_package" | "generate";
 
 export const sendEvent = async (
   event: TAnalyticsEvent,
-  data: Record<any, any>
+  data: Record<string, unknown>
 ) => {
   const config = readConfigFile();
   if (config.analytics === false) {
@@ -270,5 +269,7 @@ export const sendEvent = async (
       },
       method: "POST",
     });
-  } catch {}
+  } catch (error) {
+    consola.debug("Analytics request failed", error);
+  }
 };

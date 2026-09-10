@@ -51,6 +51,26 @@ import {
   printNextSteps,
 } from "./utils.js";
 
+type ProjectConfig = ReturnType<typeof readConfigFile>;
+
+const askForOrm = async (config: ProjectConfig, options?: InitOptions) => {
+  let orm: ORMType | null | undefined = config.orm
+    ? undefined
+    : await askOrm(options);
+  if (orm !== null) {
+    return orm;
+  }
+
+  const confirmedNoOrm = await confirm({
+    message:
+      "Are you sure you don't want to install an ORM? Note: you will not be able to install auth or Stripe.",
+  });
+  if (!confirmedNoOrm) {
+    orm = await askOrm(options);
+  }
+  return orm;
+};
+
 const promptUser = async (options?: InitOptions): Promise<InitOptions> => {
   const config = readConfigFile();
   // console.log(config);
@@ -61,16 +81,7 @@ const promptUser = async (options?: InitOptions): Promise<InitOptions> => {
     : await askComponentLib(options);
 
   // prompt orm
-  let orm: ORMType = config.orm ? undefined : await askOrm(options);
-  if (orm === null) {
-    const confirmedNoORM = await confirm({
-      message:
-        "Are you sure you don't want to install an ORM? Note: you will not be able to install auth or Stripe.",
-    });
-    if (confirmedNoORM === false) {
-      orm = await askOrm(options);
-    }
-  }
+  const orm = await askForOrm(config, options);
 
   // prompt db type
   const dbType =
@@ -122,14 +133,14 @@ const promptUser = async (options?: InitOptions): Promise<InitOptions> => {
 
 export const spinner = ora();
 
-type ProjectConfig = ReturnType<typeof readConfigFile>;
-
 const configureComponentLibrary = async (
   config: ProjectConfig,
   response: InitOptions,
   options?: InitOptions
 ) => {
-  if (config.componentLib !== undefined) return;
+  if (config.componentLib !== undefined) {
+    return;
+  }
 
   if (response.componentLib === "shadcn-ui") {
     spinner.text = "Configuring Shadcn-UI";
@@ -161,7 +172,9 @@ const configureOrm = async (
   response: InitOptions,
   options?: InitOptions
 ) => {
-  if (config.orm !== undefined) return;
+  if (config.orm !== undefined) {
+    return;
+  }
   if (response.orm === "drizzle") {
     spinner.text = "Configuring Drizzle ORM";
     await addDrizzle(
@@ -183,11 +196,15 @@ const configureAuth = async (
   response: InitOptions,
   options?: InitOptions
 ) => {
-  if (config.auth !== undefined) return;
+  if (config.auth !== undefined) {
+    return;
+  }
   const { shared } = getFilePaths();
   if (response.auth) {
     spinner.text = `Configuring ${response.auth[0].toUpperCase()}${response.auth.slice(1)}`;
-    if (options?.headless === undefined) createAuthLayoutFile();
+    if (options?.headless === undefined) {
+      createAuthLayoutFile();
+    }
   }
 
   switch (response.auth) {
@@ -221,7 +238,9 @@ const configureAuth = async (
     await createAccountSettingsPage();
     addAuthCheckToAppLayout();
   }
-  if (options?.headless === undefined) addNavbarAndSettings();
+  if (options?.headless === undefined) {
+    addNavbarAndSettings();
+  }
 };
 
 const configureMiscPackages = async (
@@ -233,7 +252,9 @@ const configureMiscPackages = async (
     spinner.text = "Configuring tRPC";
     await addTrpc(options);
   }
-  if (packages.includes("shadcn-ui")) await installShadcnUI(packages, options);
+  if (packages.includes("shadcn-ui")) {
+    await installShadcnUI(packages, options);
+  }
   if (packages.includes("resend")) {
     spinner.text = "Configuring Resend";
     await addResend(packages, options);
@@ -248,7 +269,7 @@ export const addPackage = async (options?: InitOptions, init = false) => {
   const initialConfig = readConfigFile();
 
   if (initialConfig) {
-    if (initialConfig.packages?.length === 0) {
+    if (initialConfig.packages.length === 0) {
       await checkForExistingPackages(initialConfig.rootPath);
     }
     const config = readConfigFile();

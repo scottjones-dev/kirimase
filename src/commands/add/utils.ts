@@ -379,7 +379,9 @@ const describeSelectedPackages = (options: InitOptions) => {
   if (options.componentLib === "shadcn-ui") {
     descriptions.push(`${chalk.underline("Component Library")}: ShadcnUI`);
   }
-  return descriptions.filter((description): description is string => Boolean(description));
+  return descriptions.filter((description): description is string =>
+    Boolean(description)
+  );
 };
 
 export const printNextSteps = (
@@ -388,7 +390,7 @@ export const printNextSteps = (
   options?: InitOptions
 ) => {
   const config = readConfigFile();
-  const ppm = config.preferredPackageManager ?? "npm";
+  const ppm = config.preferredPackageManager;
   const packagesInstalledList = describeSelectedPackages(promptResponses);
 
   const wouldHaveSecrets =

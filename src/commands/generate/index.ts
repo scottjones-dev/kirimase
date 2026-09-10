@@ -58,52 +58,63 @@ export type TResource =
 
 type TResourceGroup = "model" | "controller" | "view";
 
+const SNAKE_CASE_PATTERN = /^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/;
+
+const askForView = async (hasTrpc: boolean) =>
+  (await select({
+    choices: [
+      {
+        name: "Server Actions with Optimistic UI",
+        value: "views_and_components_server_actions",
+      },
+      {
+        disabled: hasTrpc
+          ? false
+          : "[You need to have tRPC installed. Run 'kirimase add']",
+        name: "tRPC with React Hook Form",
+        value: "views_and_components_trpc",
+      },
+    ],
+    message: "Please select the type of view you would like to generate:",
+  })) as TResource;
+
+const askForControllers = async (
+  hasTrpc: boolean,
+  view?: TResource
+): Promise<TResource[]> => {
+  let trpcDisabled: boolean | string = hasTrpc
+    ? false
+    : "[You need to have tRPC installed. Run 'kirimase add']";
+  if (view === "views_and_components_trpc") {
+    trpcDisabled = "[Already generated with your selected view]";
+  }
+  const choices: Choice<TResource>[] = [
+    {
+      disabled:
+        view === "views_and_components_server_actions"
+          ? "[Already generated with your selected view]"
+          : false,
+      name: "Server Actions",
+      value: "server_actions",
+    },
+    { name: "API Route", value: "api_route" },
+    { disabled: trpcDisabled, name: "tRPC", value: "trpc_route" },
+  ];
+  const availableChoices = view
+    ? choices.filter((choice) => !view.includes(choice.value.split("_")[0]))
+    : choices;
+  return (await checkbox({
+    choices: availableChoices,
+    message: view
+      ? "Please select any additional controllers you would like to generate:"
+      : "Please select which controllers you would like to generate:",
+  })) as TResource[];
+};
+
 async function askForResourceType() {
   const { packages, orm } = readConfigFile();
-
-  //   const resourcesRequested = (await checkbox({
-  //     message: "Please select the resources you would like to generate:",
-  //     choices: [
-  //       {
-  //         name: "Model",
-  //         value: "model",
-  //         disabled:
-  //           orm === null
-  //             ? "[You need to have an orm installed. Run 'kirimase add']"
-  //             : false,
-  //       },
-  //       { name: "API Route", value: "api_route" },
-  //       {
-  //         name: "TRPC Route",
-  //         value: "trpc_route",
-  //         disabled: !packages.includes("trpc")
-  //           ? "[You need to have trpc installed. Run 'kirimase add']"
-  //           : false,
-  //       },
-  //       {
-  //         name: "Views + Components (with Shadcn UI, requires TRPC route)",
-  //         value: "views_and_components_trpc",
-  //         disabled:
-  //           !packages.includes("shadcn-ui") || !packages.includes("trpc")
-  //             ? "[You need to have shadcn-ui and trpc installed. Run 'kirimase add']"
-  //             : false,
-  //       },
-  //       {
-  //         name: "Server Actions",
-  //         value: "server_actions",
-  //       },
-  //       {
-  //         name: "Views + Components (with server actions)",
-  //         value: "views_and_components_server_actions",
-  //       },
-  //     ],
-  //   })) as TResource[];
-  //   return resourcesRequested;
-  // }
-
   const resourcesRequested: TResource[] = [];
-  let viewRequested: TResource;
-  let controllersRequested: TResource[];
+  let viewRequested: TResource | undefined;
   const resourcesTypesRequested = (await checkbox({
     choices: [
       {
@@ -131,22 +142,7 @@ async function askForResourceType() {
   }
 
   if (resourcesTypesRequested.includes("view")) {
-    viewRequested = (await select({
-      choices: [
-        {
-          name: "Server Actions with Optimistic UI",
-          value: "views_and_components_server_actions",
-        },
-        {
-          disabled: packages.includes("trpc")
-            ? false
-            : "[You need to have tRPC installed. Run 'kirimase add']",
-          name: "tRPC with React Hook Form",
-          value: "views_and_components_trpc",
-        },
-      ],
-      message: "Please select the type of view you would like to generate:",
-    })) as TResource;
+    viewRequested = await askForView(packages.includes("trpc"));
     if (
       viewRequested === "views_and_components_server_actions" &&
       resourcesTypesRequested.includes("controller")
@@ -162,40 +158,16 @@ async function askForResourceType() {
   }
 
   if (resourcesTypesRequested.includes("controller")) {
-    controllersRequested = (await checkbox({
-      choices: [
-        {
-          disabled:
-            viewRequested === "views_and_components_server_actions"
-              ? "[Already generated with your selected view]"
-              : false,
-          name: "Server Actions",
-          value: "server_actions",
-        },
-        {
-          name: "API Route",
-          value: "api_route",
-        },
-        {
-          disabled: packages.includes("trpc")
-            ? viewRequested === "views_and_components_trpc"
-              ? "[Already generated with your selected view]"
-              : false
-            : "[You need to have tRPC installed. Run 'kirimase add']",
-          name: "tRPC",
-          value: "trpc_route",
-        },
-      ].filter((item) =>
-        viewRequested ? !viewRequested.includes(item.value.split("_")[0]) : item
-      ),
-      message: viewRequested
-        ? "Please select any additional controllers you would like to generate:"
-        : "Please select which controllers you would like to generate:",
-    })) as TResource[];
+    const controllers = await askForControllers(
+      packages.includes("trpc"),
+      viewRequested
+    );
+    resourcesRequested.push(...controllers);
   }
 
-  viewRequested && resourcesRequested.push(viewRequested);
-  controllersRequested && resourcesRequested.push(...controllersRequested);
+  if (viewRequested) {
+    resourcesRequested.push(viewRequested);
+  }
 
   return resourcesRequested;
 }
@@ -203,8 +175,8 @@ async function askForResourceType() {
 async function askForTable() {
   const tableName = await input({
     message: "Please enter the table name (plural and in snake_case):",
-    validate: (input) =>
-      input.match(/^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/)
+    validate: (value) =>
+      value.match(SNAKE_CASE_PATTERN)
         ? true
         : "Table name must be in snake_case if more than one word, and plural.",
   });
@@ -220,83 +192,70 @@ async function askIfBelongsToUser() {
 }
 
 async function askForFields(orm: ORMType, dbType: DBType, tableName: string) {
-  const fields: DBField[] = [];
-  let addMore = true;
-
-  while (addMore) {
-    const currentSchemas = getCurrentSchemas();
-
-    const baseFieldTypeChoices = Object.keys(
-      createOrmMappings()[orm][dbType].typeMappings
-    )
-      .filter((field) => field !== "id")
-      .map((field) => ({ name: field.toLowerCase(), value: field }));
-
-    const removeReferenceOption =
-      currentSchemas.length === 0 ||
-      (currentSchemas.length === 1 &&
-        currentSchemas[0] === toCamelCase(tableName));
-    const fieldTypeChoices = removeReferenceOption
-      ? baseFieldTypeChoices.filter(
-          (field) => field.name.toLowerCase() !== "references"
+  const currentSchemas = getCurrentSchemas();
+  const baseChoices = Object.keys(createOrmMappings()[orm][dbType].typeMappings)
+    .filter((fieldTypeName) => fieldTypeName !== "id")
+    .map((fieldTypeName) => ({
+      name: fieldTypeName.toLowerCase(),
+      value: fieldTypeName,
+    }));
+  const onlyCurrentSchema =
+    currentSchemas.length === 1 && currentSchemas[0] === toCamelCase(tableName);
+  const choices =
+    currentSchemas.length === 0 || onlyCurrentSchema
+      ? baseChoices.filter(
+          (fieldChoice) => fieldChoice.name.toLowerCase() !== "references"
         )
-      : baseFieldTypeChoices;
+      : baseChoices;
+  const fieldType = (await select({
+    choices,
+    message: "Please select the type of this field:",
+  })) as DrizzleColumnType | PrismaColumnType;
 
-    const fieldType = (await select({
-      choices: fieldTypeChoices,
-      message: "Please select the type of this field:",
-    })) as DrizzleColumnType | PrismaColumnType;
-
-    if (fieldType.toLowerCase() === "references") {
-      const referencesTable = await select({
-        choices: currentSchemas
-          .filter((schema) => schema !== toCamelCase(tableName))
-          .map((schema) => ({
-            name: camelCaseToSnakeCase(schema),
-            value: camelCaseToSnakeCase(schema),
-          })),
-        message: "Which table do you want it reference?",
-      });
-
-      const fieldName = `${pluralize.singular(referencesTable)}_id`;
-      const cascade = await confirm({
-        default: false,
-        message: "Would you like to cascade on delete?",
-      });
-
-      fields.push({
-        cascade,
-        name: fieldName,
-        notNull: true,
-        references: referencesTable,
-        type: fieldType,
-      });
-    } else {
-      const fieldName = await input({
-        message: "Please enter the field name (in snake_case):",
-        validate: (input) =>
-          input.match(/^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/)
-            ? true
-            : "Field name must be in snake_case if more than one word.",
-      });
-
-      const notNull = await confirm({
-        default: true,
-        message: "Is this field required?",
-      });
-
-      fields.push({ name: fieldName.toLowerCase(), notNull, type: fieldType });
-    }
-
-    const continueAdding = await confirm({
-      default: false,
-      message: "Would you like to add another field?",
+  let field: DBField;
+  if (fieldType.toLowerCase() === "references") {
+    const references = await select({
+      choices: currentSchemas
+        .filter((schemaName) => schemaName !== toCamelCase(tableName))
+        .map((schemaName) => ({
+          name: camelCaseToSnakeCase(schemaName),
+          value: camelCaseToSnakeCase(schemaName),
+        })),
+      message: "Which table do you want it reference?",
     });
-
-    addMore = continueAdding;
+    const cascade = await confirm({
+      default: false,
+      message: "Would you like to cascade on delete?",
+    });
+    field = {
+      cascade,
+      name: `${pluralize.singular(references)}_id`,
+      notNull: true,
+      references,
+      type: fieldType,
+    };
+  } else {
+    const fieldName = await input({
+      message: "Please enter the field name (in snake_case):",
+      validate: (value) =>
+        value.match(SNAKE_CASE_PATTERN)
+          ? true
+          : "Field name must be in snake_case if more than one word.",
+    });
+    const notNull = await confirm({
+      default: true,
+      message: "Is this field required?",
+    });
+    field = { name: fieldName.toLowerCase(), notNull, type: fieldType };
   }
 
-  return fields;
+  const addMore = await confirm({
+    default: false,
+    message: "Would you like to add another field?",
+  });
+  return addMore
+    ? [field, ...(await askForFields(orm, dbType, tableName))]
+    : [field];
 }
 
 async function askForIndex(fields: DBField[]) {
@@ -374,17 +333,20 @@ async function addChildSchemaToParent(
   resourceType: TResource[],
   parentSchema: Schema
 ): Promise<Schema> {
-  const childModels: Schema[] = [];
-  let addChild = await askForChildModel(parentSchema.tableName);
-  while (addChild) {
-    const childSchema = await getSchema(config, resourceType); // recursive call instead of getBaseSchema
-    childModels.push(childSchema);
-    addChild = await askForChildModel(parentSchema.tableName); // ask again if they want to add another child
+  const addChild = await askForChildModel(parentSchema.tableName);
+  if (!addChild) {
+    return { ...parentSchema, children: [] } as Schema;
   }
+  const childSchema = await getSchema(config, resourceType);
+  const remaining = await addChildSchemaToParent(
+    config,
+    resourceType,
+    parentSchema
+  );
 
   return {
     ...parentSchema,
-    children: childModels,
+    children: [childSchema, ...(remaining.children ?? [])],
   } as Schema;
 }
 
@@ -433,9 +395,9 @@ function getInidividualSchemas(
 
   // If there are child schemas, recursively call getSchemas() on each one
   if (Array.isArray(children)) {
-    children.forEach((child) =>
-      getInidividualSchemas(child, newParents, result)
-    );
+    for (const child of children) {
+      getInidividualSchemas(child, newParents, result);
+    }
   }
 
   return result;
@@ -443,6 +405,19 @@ function getInidividualSchemas(
 
 export const formatSchemaForGeneration = (schema?: Schema) =>
   getInidividualSchemas(schema);
+
+const generateAllResources = async (
+  schemas: ExtendedSchema[],
+  resourceType: TResource[],
+  index = 0
+): Promise<void> => {
+  const schemaToGenerate = schemas[index];
+  if (!schemaToGenerate) {
+    return;
+  }
+  await generateResources(schemaToGenerate, resourceType);
+  await generateAllResources(schemas, resourceType, index + 1);
+};
 
 const anonymiseSchemas = (schemas: ExtendedSchema[]): ExtendedSchema[] => {
   const anonymise = (
@@ -460,9 +435,7 @@ const anonymiseSchemas = (schemas: ExtendedSchema[]): ExtendedSchema[] => {
       name: `${prefix}Field${i + 1}`,
       references: "",
     })),
-    parents: schema.parents
-      ? schema.parents.map((_, i) => `${prefix}Parent${i + 1}`)
-      : [],
+    parents: schema.parents.map((_, i) => `${prefix}Parent${i + 1}`),
     tableName: `${prefix}Table`,
   });
 
@@ -542,9 +515,7 @@ export async function buildSchema() {
       schemas: JSON.stringify(anonymiseSchemas(schemas)),
     });
 
-    for (const schema of schemas) {
-      await generateResources(schema, resourceType);
-    }
+    await generateAllResources(schemas, resourceType);
     printGenerateNextSteps(schema, resourceType);
   }
 }

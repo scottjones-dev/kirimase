@@ -25,7 +25,7 @@ import {
 } from "../../../../utils.js";
 import { formatFilePath, getFilePaths } from "../../../filePaths/index.js";
 import { updateRootSchema } from "../../../generate/generators/model/utils.js";
-import { updateTRPCRouter } from "../../../generate/generators/trpcRoute.js";
+import { updateTRPCRouter } from "../../../generate/generators/trpc-route.js";
 import {
   addToPrismaModelBulk,
   addToPrismaSchema,

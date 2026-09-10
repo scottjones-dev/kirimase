@@ -1298,7 +1298,6 @@ export async function getUserSubscriptionPlan() {
 };
 
 export const createAccountTRPCRouter = () => {
-  const { alias } = readConfigFile();
   const { stripe, trpc, shared } = getFilePaths();
   const { createRouterInvokcation } = getFileLocations();
   return `import { getUserAuth } from "${formatFilePath(shared.auth.authUtils, {

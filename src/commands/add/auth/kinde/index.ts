@@ -2,7 +2,6 @@ import type { InitOptions } from "../../../../types.js";
 import {
   addPackageToConfig,
   createFile,
-  readConfigFile,
   updateConfigFile,
 } from "../../../../utils.js";
 import { formatFilePath, getFilePaths } from "../../../filePaths/index.js";

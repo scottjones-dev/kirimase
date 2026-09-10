@@ -277,7 +277,7 @@ export function toNormalEnglish(
 }
 
 export function getCurrentSchemas() {
-  const { hasSrc, orm } = readConfigFile();
+  const { orm } = readConfigFile();
   const { shared } = getFilePaths();
   if (orm === "drizzle") {
     const directory = formatFilePath(shared.orm.schemaDir, {
@@ -360,7 +360,7 @@ export const addToPrismaSchema = (schema: string, modelName: string) => {
 
 export const formatPrismaModelName = (name: string) => {
   const lowerCase = name.toLowerCase();
-  const firstLetter = lowerCase[0];
+  const [firstLetter] = lowerCase;
   const plural = pluralize.plural(name);
   const pluralLowerCase = pluralize.plural(lowerCase);
 
