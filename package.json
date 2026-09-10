@@ -21,16 +21,25 @@
   "license": "MIT",
   "author": "Scott Jones",
   "type": "module",
-  "main": "index.js",
+  "main": "dist/index.js",
   "bin": {
     "gennext": "./dist/index.js"
   },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md",
+    "CHANGELOG.md",
+    "MIGRATION.md"
+  ],
   "scripts": {
     "build": "tsc",
     "check": "ultracite check",
+    "clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",
     "dev": "tsc -w",
     "dev2": "node dist/index.js",
     "fix": "ultracite fix",
+    "prepublishOnly": "npm run clean && npm run build && npm run check && npm run typecheck && npm test",
     "test": "node --test test/*.test.mjs",
     "test:e2e": "node --test test/e2e/*.test.mjs",
     "typecheck": "tsc --noEmit"
