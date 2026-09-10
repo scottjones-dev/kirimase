@@ -438,7 +438,7 @@ export const printNextSteps = (
           "Remember to add Providers for packages (if you installed trpc, shadcn, or clerk) to your root layout!",
         ]
       : []),
-    "If you have any issues, please open an issue on GitHub\n  (https://github.com/nicoalbanese/kirimase/issues)",
+    "If you have any issues, please open an issue on GitHub\n  (https://github.com/scottjones-dev/gennext/issues)",
   ];
 
   showNextSteps(packagesInstalledList, nextSteps, notes, duration);
@@ -462,7 +462,7 @@ export const showNextSteps = (
   notes: string[],
   duration: number
 ) => {
-  const nextStepsFormatted = `🚀 Thanks for using Kirimase to kickstart your Next.js app!
+  const nextStepsFormatted = `🚀 Thanks for using GenNext to kickstart your Next.js app!
 
 ${formatInstallList(installedPackages)}
 
@@ -472,6 +472,6 @@ ${chalk.bgGreen(
 ${createNextStepsList(steps)}
 ${notes.length > 0 ? createNotesList(notes) : ""}
 
-Hint: use \`kirimase generate\` to quickly scaffold entire entities for your application`;
+Hint: use \`gennext generate\` to quickly scaffold entire entities for your application`;
   consola.box(nextStepsFormatted);
 };

@@ -1,5 +1,5 @@
 const MIGRATION_GUIDE =
-  "https://github.com/nicoalbanese/kirimase/blob/main/MIGRATION.md";
+  "https://github.com/scottjones-dev/gennext/blob/main/MIGRATION.md";
 
 export const LEGACY_AUTH_VALUES = ["next-auth", "lucia", "kinde"] as const;
 export type LegacyAuthType = (typeof LEGACY_AUTH_VALUES)[number];
@@ -18,7 +18,7 @@ const legacyDependencies: Record<LegacyAuthType, readonly string[]> = {
 export class LegacyAuthMigrationError extends Error {
   constructor(auth: LegacyAuthType) {
     super(
-      `Kirimase 0.1 no longer supports '${auth}'. Migrate authentication manually before continuing: ${MIGRATION_GUIDE}`
+      `GenNext 0.1 no longer supports '${auth}'. Migrate authentication manually before continuing: ${MIGRATION_GUIDE}`
     );
     this.name = "LegacyAuthMigrationError";
   }

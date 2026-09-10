@@ -9,11 +9,7 @@ import type {
   ORMType,
   PrismaColumnType,
 } from "../../types.js";
-import {
-  readConfigFile,
-  sendEvent,
-  updateConfigFileAfterUpdate,
-} from "../../utils.js";
+import { readConfigFile, updateConfigFileAfterUpdate } from "../../utils.js";
 import { addPackage } from "../add/index.js";
 import { installShadcnComponentList } from "../add/utils.js";
 import { initProject } from "../init/index.js";
@@ -70,7 +66,7 @@ const askForView = async (hasTrpc: boolean) =>
       {
         disabled: hasTrpc
           ? false
-          : "[You need to have tRPC installed. Run 'kirimase add']",
+          : "[You need to have tRPC installed. Run 'gennext add']",
         name: "tRPC with React Hook Form",
         value: "views_and_components_trpc",
       },
@@ -84,7 +80,7 @@ const askForControllers = async (
 ): Promise<TResource[]> => {
   let trpcDisabled: boolean | string = hasTrpc
     ? false
-    : "[You need to have tRPC installed. Run 'kirimase add']";
+    : "[You need to have tRPC installed. Run 'gennext add']";
   if (view === "views_and_components_trpc") {
     trpcDisabled = "[Already generated with your selected view]";
   }
@@ -120,7 +116,7 @@ async function askForResourceType() {
       {
         disabled:
           orm === null
-            ? "[You need to have an orm installed. Run 'kirimase add']"
+            ? "[You need to have an orm installed. Run 'gennext add']"
             : false,
         name: "Model",
         value: "model",
@@ -129,7 +125,7 @@ async function askForResourceType() {
       {
         disabled: packages.includes("shadcn-ui")
           ? false
-          : "[You need to have shadcn-ui installed. Run 'kirimase add']",
+          : "[You need to have shadcn-ui installed. Run 'gennext add']",
         name: "View",
         value: "view",
       },
@@ -419,29 +415,6 @@ const generateAllResources = async (
   await generateAllResources(schemas, resourceType, index + 1);
 };
 
-const anonymiseSchemas = (schemas: ExtendedSchema[]): ExtendedSchema[] => {
-  const anonymise = (
-    schema: ExtendedSchema,
-    prefix: string
-  ): ExtendedSchema => ({
-    ...schema,
-    children: schema.children
-      ? schema.children.map((c, i) =>
-          anonymise(c as ExtendedSchema, `${prefix}Child${i + 1}`)
-        )
-      : [],
-    fields: schema.fields.map((f, i) => ({
-      ...f,
-      name: `${prefix}Field${i + 1}`,
-      references: "",
-    })),
-    parents: schema.parents.map((_, i) => `${prefix}Parent${i + 1}`),
-    tableName: `${prefix}Table`,
-  });
-
-  return schemas.map((s, i) => anonymise(s, `Schema${i + 1}`));
-};
-
 async function generateResources(
   schema: ExtendedSchema,
   resourceType: TResource[]
@@ -509,11 +482,6 @@ export async function buildSchema() {
     // TODO
 
     const schemas = formatSchemaForGeneration(schema);
-
-    await sendEvent("generate", {
-      resources: resourceType,
-      schemas: JSON.stringify(anonymiseSchemas(schemas)),
-    });
 
     await generateAllResources(schemas, resourceType);
     printGenerateNextSteps(schema, resourceType);

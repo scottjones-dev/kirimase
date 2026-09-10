@@ -3,12 +3,12 @@ name: Bug report
 about: Create a report to help us improve
 title: ''
 labels: bug
-assignees: nicoalbanese
+assignees: scottjones-dev
 
 ---
 
 **Config File**
-Please copy the contents of your `kirimase.config.json` file.
+Please copy the contents of your `gennext.config.json` file.
 
 **Describe the bug**
 A clear and concise description of what the bug is.

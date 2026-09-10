@@ -9,7 +9,7 @@ const projectRoot = path.resolve(
   ".."
 );
 const cliPath = path.join(projectRoot, "dist", "index.js");
-const cliDescriptionPattern = /Kirimase CLI/;
+const cliDescriptionPattern = /GenNext CLI/;
 const generateCommandPattern = /generate/;
 const initCommandPattern = /init/;
 const unknownCommandPattern = /unknown command/;

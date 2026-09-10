@@ -2,12 +2,7 @@ import { confirm } from "@inquirer/prompts";
 import { consola } from "consola";
 import ora from "ora";
 import type { InitOptions, ORMType } from "../../types.js";
-import {
-  readConfigFile,
-  replaceFile,
-  sendEvent,
-  updateConfigFile,
-} from "../../utils.js";
+import { readConfigFile, replaceFile, updateConfigFile } from "../../utils.js";
 import { formatFilePath, getFilePaths } from "../filePaths/index.js";
 import { initProject } from "../init/index.js";
 import { checkForExistingPackages } from "../init/utils.js";
@@ -259,7 +254,7 @@ const configureMiscPackages = async (
   }
 };
 
-export const addPackage = async (options?: InitOptions, init = false) => {
+export const addPackage = async (options?: InitOptions) => {
   const initialConfig = readConfigFile();
 
   if (initialConfig) {
@@ -283,13 +278,6 @@ export const addPackage = async (options?: InitOptions, init = false) => {
     await configureMiscPackages(promptResponse, options);
 
     spinner.text = "Finishing configuration";
-    if (init === true) {
-      await sendEvent("init_config", {});
-    } else {
-      await sendEvent("add_package", {
-        newPackages: promptResponse.miscPackages ?? [],
-      });
-    }
 
     spinner.succeed("Configuration complete");
 

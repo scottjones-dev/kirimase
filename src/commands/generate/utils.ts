@@ -469,13 +469,12 @@ export const printGenerateNextSteps = (
 
   consola.box(`🎉 Success! 
 
-Kirimase generated the following resources for \`${tableNameNormalEnglishSingular}\`:
+GenNext generated the following resources for \`${tableNameNormalEnglishSingular}\`:
 ${resources.map((r) => `- ${resourceMapping[r]}`).join("\n")}
 
 ${createNextStepsList(nextStepsList)}
 
 ${createNotesList([
-  "If you run into any issues, please create an issue on GitHub\n  (https://github.com/nicoalbanese/kirimase/issues)",
-  "Documentation (https://kirimase.dev/commands/generate)",
+  "If you run into any issues, please create an issue on GitHub\n  (https://github.com/scottjones-dev/gennext/issues)",
 ])}`);
 };

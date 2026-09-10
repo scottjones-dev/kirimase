@@ -1,5 +1,5 @@
 {
-  "name": "kirimase",
+  "name": "gennext",
   "version": "0.1.0",
   "description": "A Rails-like CLI for building full-stack Next.js apps faster",
   "keywords": [
@@ -10,12 +10,20 @@
     "rails",
     "shadcn"
   ],
-  "license": "ISC",
-  "author": "Nico Albanese",
+  "homepage": "https://github.com/scottjones-dev/gennext#readme",
+  "bugs": {
+    "url": "https://github.com/scottjones-dev/gennext/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/scottjones-dev/gennext.git"
+  },
+  "license": "MIT",
+  "author": "Scott Jones",
   "type": "module",
   "main": "index.js",
   "bin": {
-    "kirimase": "./dist/index.js"
+    "gennext": "./dist/index.js"
   },
   "scripts": {
     "build": "tsc",

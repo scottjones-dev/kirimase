@@ -77,7 +77,7 @@ export const generateBetterAuthSchema = async (
     return;
   }
 
-  const temporaryDirectory = ".kirimase";
+  const temporaryDirectory = ".gennext";
   const temporarySchema = `${temporaryDirectory}/better-auth.prisma`;
   mkdirSync(temporaryDirectory, { recursive: true });
   const invocation = getBetterAuthSchemaCommand(

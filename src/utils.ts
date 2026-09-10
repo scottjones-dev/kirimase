@@ -109,14 +109,14 @@ export async function installPackages(
 }
 
 export const createConfigFile = (options: Config) => {
-  createFile("./kirimase.config.json", JSON.stringify(options, null, 2));
+  createFile("./gennext.config.json", JSON.stringify(options, null, 2));
 };
 
 export const updateConfigFile = (options: UpdateConfig) => {
   const config = readConfigFile();
   const newConfig = { ...config, ...options };
   replaceFile(
-    "./kirimase.config.json",
+    "./gennext.config.json",
     JSON.stringify(newConfig, null, 2),
     false
   );
@@ -124,7 +124,7 @@ export const updateConfigFile = (options: UpdateConfig) => {
 
 export const readConfigFile = (): (Config & { rootPath: string }) | null => {
   // Define the path to package.json
-  const configPath = path.join(process.cwd(), "kirimase.config.json");
+  const configPath = path.join(process.cwd(), "gennext.config.json");
 
   if (!fs.existsSync(configPath)) {
     return null;
@@ -246,33 +246,4 @@ export const getFileLocations = (): T3Deltas => {
     return t3Locations;
   }
   return regularLocations;
-};
-
-type TAnalyticsEvent = "init_config" | "add_package" | "generate";
-
-export const sendEvent = async (
-  event: TAnalyticsEvent,
-  data: Record<string, unknown>
-) => {
-  const config = readConfigFile();
-  if (config.analytics === false) {
-    return;
-  }
-  const url = "https://kirimase-proxy-analytics.vercel.app";
-  // const url = "http://localhost:3000";
-  try {
-    await fetch(`${url}/api/send-event`, {
-      body: JSON.stringify({
-        config,
-        data,
-        event,
-      }),
-      headers: {
-        "x-request-from": "kirimase",
-      },
-      method: "POST",
-    });
-  } catch (error) {
-    consola.debug("Analytics request failed", error);
-  }
 };

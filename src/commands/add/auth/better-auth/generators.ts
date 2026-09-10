@@ -56,7 +56,7 @@ import { db } from "${context.dbImport}";
 ${schemaImport}
 
 export const auth = betterAuth({
-  appName: "Kirimase App",
+  appName: "GenNext App",
   baseURL: process.env.BETTER_AUTH_URL,
   secret: process.env.BETTER_AUTH_SECRET,
   database: ${database},

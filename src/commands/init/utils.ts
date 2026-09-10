@@ -11,7 +11,7 @@ import type {
   ORMType,
   PMType,
 } from "../../types.js";
-import { readConfigFile, replaceFile, updateConfigFile } from "../../utils.js";
+import { replaceFile, updateConfigFile } from "../../utils.js";
 import { addNanoidToUtils } from "../add/orm/drizzle/utils.js";
 import { updateTsConfigPrismaTypeAlias } from "../add/orm/utils.js";
 import { addToInstallList } from "../add/utils.js";
@@ -245,18 +245,4 @@ export const checkForPackageManager = (): PMType | null => {
   }
 
   return null;
-};
-
-export const toggleAnalytics = (input: { toggle?: boolean }) => {
-  const { analytics } = readConfigFile();
-
-  if (input.toggle) {
-    updateConfigFile({ analytics: !analytics });
-
-    consola.info(`Anonymous analytics are now ${analytics ? "off" : "on"}`);
-  } else {
-    consola.info(
-      `Anonymous analytics are currently ${analytics ? "on" : "off"}`
-    );
-  }
 };

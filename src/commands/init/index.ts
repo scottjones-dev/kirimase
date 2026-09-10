@@ -13,21 +13,21 @@ export async function initProject(options?: InitOptions) {
   const nextjsProjectExists = existsSync("package.json");
   if (!nextjsProjectExists) {
     consola.fatal(
-      "No Next.js project detected. Please create a Next.js project and then run `kirimase init` within that directory."
+      "No Next.js project detected. Please create a Next.js project and then run `gennext init` within that directory."
     );
     process.exit(0);
   }
   const usingAppDirWithSrc = existsSync(path.join(process.cwd(), "src/app"));
   const usingAppDirWithOutSrc = existsSync(path.join(process.cwd(), "app"));
   if (!(usingAppDirWithOutSrc || usingAppDirWithSrc)) {
-    consola.fatal("Kirimase only works with the Next.js App Directory.");
+    consola.fatal("GenNext only works with the Next.js App Directory.");
     process.exit(0);
   }
 
   console.clear();
 
   console.log("\n");
-  console.log(chalk(figlet.textSync("Kirimase", { font: "ANSI Shadow" })));
+  console.log(chalk(figlet.textSync("GenNext", { font: "ANSI Shadow" })));
   const srcExists =
     usingAppDirWithSrc ??
     options.hasSrcFolder ??
@@ -56,7 +56,7 @@ export async function initProject(options?: InitOptions) {
   const tsConfigExists = existsSync("tsconfig.json");
   if (!tsConfigExists) {
     consola.info("No TSConfig found...");
-    consola.fatal("Kirimase is only compatible with Typescript projects.");
+    consola.fatal("GenNext is only compatible with Typescript projects.");
     process.exit(0);
   }
   const tsConfigString = readFileSync("tsconfig.json", "utf-8");
@@ -70,7 +70,6 @@ export async function initProject(options?: InitOptions) {
 
   createConfigFile({
     alias,
-    analytics: true,
     auth: undefined,
     componentLib: undefined,
     driver: undefined,
@@ -81,7 +80,7 @@ export async function initProject(options?: InitOptions) {
     provider: undefined,
     t3: false,
   });
-  // consola.success("Kirimase initialized!");
+  // consola.success("GenNext initialized!");
   // consola.info("You can now add packages.");
-  addPackage(options, true);
+  addPackage(options);
 }

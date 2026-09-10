@@ -82,7 +82,6 @@ export type MiscType = "trpc" | "stripe" | "resend";
 
 export interface Config {
   alias: string;
-  analytics: boolean;
   auth: AuthType | null;
   componentLib: ComponentLibType | null;
   driver: DBType | null;
