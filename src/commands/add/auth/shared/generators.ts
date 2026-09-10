@@ -37,7 +37,6 @@ export const createUpdateNameCard = (
   serverActions = false
 ) => {
   const { alias } = readConfigFile();
-  const { lucia } = getFilePaths();
   if (withShadCn) {
     if (serverActions) {
       return `"use client";
@@ -46,7 +45,7 @@ import { useEffect } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 
 import { AccountCard, AccountCardFooter, AccountCardBody } from "./AccountCard";
-import { updateUser } from "${formatFilePath(lucia.usersActions, { prefix: "alias", removeExtension: true })}";
+import { updateUser } from "${formatFilePath("lib/actions/users.ts", { prefix: "alias", removeExtension: true })}";
 
 import { toast } from "sonner";
 import { Input } from "${formatFilePath("components/ui/input", { prefix: "alias", removeExtension: false })}";
@@ -152,7 +151,7 @@ export default function UpdateNameCard({ name }: { name: string }) {
 import { useFormState, useFormStatus } from "react-dom";
 import { useEffect } from "react";
 
-import { updateUser } from "${formatFilePath(lucia.usersActions, { prefix: "alias", removeExtension: true })}";
+import { updateUser } from "${formatFilePath("lib/actions/users.ts", { prefix: "alias", removeExtension: true })}";
 import { AccountCard, AccountCardFooter, AccountCardBody } from "./AccountCard";
 
 export default function UpdateNameCard({ name }: { name: string }) {
@@ -265,7 +264,6 @@ export const createUpdateEmailCard = (
   serverActions = false
 ) => {
   const { alias } = readConfigFile();
-  const { lucia } = getFilePaths();
   if (withShadCn) {
     if (serverActions) {
       return `"use client";
@@ -274,7 +272,7 @@ import { useEffect } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 
 import { AccountCard, AccountCardFooter, AccountCardBody } from "./AccountCard";
-import { updateUser } from "${formatFilePath(lucia.usersActions, { prefix: "alias", removeExtension: true })}";
+import { updateUser } from "${formatFilePath("lib/actions/users.ts", { prefix: "alias", removeExtension: true })}";
 
 import { toast } from "sonner";
 import { Input } from "${formatFilePath("components/ui/input", { prefix: "alias", removeExtension: false })}";
@@ -381,7 +379,7 @@ export default function UpdateEmailCard({ email }: { email: string }) {
 import { useFormState, useFormStatus } from "react-dom";
 import { useEffect } from "react";
 
-import { updateUser } from "${formatFilePath(lucia.usersActions, { prefix: "alias", removeExtension: true })}";
+import { updateUser } from "${formatFilePath("lib/actions/users.ts", { prefix: "alias", removeExtension: true })}";
 import { AccountCard, AccountCardFooter, AccountCardBody } from "./AccountCard";
 
 export default function UpdateEmailCard({ email }: { email: string }) {
@@ -684,25 +682,10 @@ export async function PUT(request: Request) {
 export const createNavbar = (
   withShadcn: boolean,
   usingClerk,
-  auth: AuthType
+  _auth: AuthType
 ) => {
-  const { shared, "next-auth": nextAuth } = getFilePaths();
+  const { shared } = getFilePaths();
   const { alias } = readConfigFile();
-  let logOutRoute: string;
-  switch (auth) {
-    case "next-auth":
-      logOutRoute = "/api/auth/signout";
-      break;
-    case "clerk":
-      break;
-    case "lucia":
-      break;
-    case "kinde":
-      logOutRoute = "/api/auth/logout";
-      break;
-    default:
-      throw new Error(`Unsupported authentication type: ${auth}`);
-  }
   if (withShadcn) {
     return `import { getUserAuth } from "${formatFilePath(
       shared.auth.authUtils,
@@ -719,14 +702,11 @@ import Link from "next/link";${
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "${alias}/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "${alias}/components/ui/avatar";${
-            auth === "next-auth"
-              ? ""
-              : `\nimport SignOutBtn from "${formatFilePath(
-                  nextAuth.signOutButtonComponent,
-                  { prefix: "alias", removeExtension: true }
-                )}";`
-          }
+import { Avatar, AvatarFallback } from "${alias}/components/ui/avatar";
+import SignOutBtn from "${formatFilePath("components/auth/SignOutBtn.tsx", {
+            prefix: "alias",
+            removeExtension: true,
+          })}";
 `
     }
 import { ModeToggle } from "${alias}/components/ui/ThemeToggle";
@@ -778,17 +758,9 @@ export default async function Navbar() {
                     Account
                   </DropdownMenuItem>
                 </Link>
-                ${
-                  auth === "next-auth" || auth === "kinde"
-                    ? `<Link href="${logOutRoute}">
-                  <DropdownMenuItem className="cursor-pointer">
-                    Sign out
-                  </DropdownMenuItem>
-                </Link>`
-                    : `<DropdownMenuItem>
+                <DropdownMenuItem>
                   <SignOutBtn />  
-                </DropdownMenuItem>`
-                }
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (

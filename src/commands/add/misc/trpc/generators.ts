@@ -244,17 +244,18 @@ export const serverClient = appRouter.createCaller({
 };
 
 export const libTrpcApiTs = () => {
-  const { packages } = readConfigFile();
+  const { auth } = readConfigFile();
   const { trpc, shared } = getFilePaths();
 
   return `import "server-only";
 
-${
-  packages.includes("next-auth") ? "" : "  //  "
-}import { getUserAuth } from "${formatFilePath(shared.auth.authUtils, {
-    prefix: "alias",
-    removeExtension: true,
-  })}";
+${auth ? "" : "  //  "}import { getUserAuth } from "${formatFilePath(
+    shared.auth.authUtils,
+    {
+      prefix: "alias",
+      removeExtension: true,
+    }
+  )}";
 import { appRouter } from "${formatFilePath(trpc.rootRouter, {
     prefix: "alias",
     removeExtension: true,

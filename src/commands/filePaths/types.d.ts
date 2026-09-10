@@ -11,24 +11,6 @@ export interface Paths {
     schemaTs?: string;
     schemaAggregator?: string;
   };
-  kinde: {
-    routeHandler: string;
-    signInPage: string;
-  };
-  lucia: {
-    signInPage: string;
-    signUpPage: string;
-    usersActions: string;
-    libAuthLucia: string;
-    signOutButtonComponent: string;
-    formErrorComponent: string;
-  };
-  "next-auth": {
-    nextAuthApiRoute: string;
-    authProviderComponent: string;
-    signOutButtonComponent: string;
-    signInPage: string;
-  };
   prisma: { dbIndex: string };
   resend: {
     resendPage: string;

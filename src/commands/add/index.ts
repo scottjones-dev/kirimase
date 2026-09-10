@@ -12,10 +12,6 @@ import { formatFilePath, getFilePaths } from "../filePaths/index.js";
 import { initProject } from "../init/index.js";
 import { checkForExistingPackages } from "../init/utils.js";
 import { addClerk } from "./auth/clerk/index.js";
-import { addKinde } from "./auth/kinde/index.js";
-import { addLucia } from "./auth/lucia/index.js";
-import { addNextAuth } from "./auth/next-auth/index.js";
-import { checkAndAddAuthUtils } from "./auth/next-auth/utils.js";
 import { createAccountSettingsPage } from "./auth/shared/index.js";
 import { installShadcnUI } from "./componentLib/shadcn-ui/index.js";
 import {
@@ -34,7 +30,6 @@ import { addDrizzle } from "./orm/drizzle/index.js";
 import { addPrisma } from "./orm/prisma/index.js";
 import {
   askAuth,
-  askAuthProvider,
   askComponentLib,
   askDbProvider,
   askDbType,
@@ -107,10 +102,7 @@ const promptUser = async (options?: InitOptions): Promise<InitOptions> => {
 
   const auth = config.auth || !orm ? undefined : await askAuth(options);
 
-  const authProviders =
-    auth === "next-auth"
-      ? options?.authProviders || (await askAuthProvider())
-      : undefined;
+  const authProviders = undefined;
 
   const hasOrmAndAuth = !!(
     config.auth ||
@@ -208,17 +200,8 @@ const configureAuth = async (
   }
 
   switch (response.auth) {
-    case "next-auth":
-      await addNextAuth(response.authProviders, options);
-      break;
     case "clerk":
       await addClerk(options);
-      break;
-    case "lucia":
-      await addLucia(options);
-      break;
-    case "kinde":
-      await addKinde(options);
       break;
     default:
       if (options?.headless === undefined) {
@@ -287,10 +270,6 @@ export const addPackage = async (options?: InitOptions, init = false) => {
     await configureOrm(config, promptResponse, options);
     await configureAuth(config, promptResponse, options);
     await configureMiscPackages(promptResponse, options);
-
-    if (config.t3 && config.auth === "next-auth") {
-      checkAndAddAuthUtils();
-    }
 
     spinner.text = "Finishing configuration";
     if (init === true) {

@@ -5,7 +5,7 @@ import {
   getDbIndexPath,
   getFilePaths,
 } from "../../../filePaths/index.js";
-import { AuthSubTypeMapping } from "../../utils.js";
+import { authUsesDatabaseUser } from "../../auth/shared/integration.js";
 
 export const generateStripeIndexTs = () => `import Stripe from "stripe";
 
@@ -942,7 +942,7 @@ export const generateSubscriptionsDrizzleSchema = (
   driver: DBType,
   auth: AuthType
 ) => {
-  const authSubtype = AuthSubTypeMapping[auth];
+  const usesDatabaseUser = authUsesDatabaseUser(auth);
   // add references for pg and sqlite
   switch (driver) {
     case "pg":
@@ -952,18 +952,14 @@ export const generateSubscriptionsDrizzleSchema = (
   timestamp,
   varchar,
 } from "drizzle-orm/pg-core";${
-        authSubtype === "self-hosted" ? `\nimport { users } from "./auth";` : ""
+        usesDatabaseUser ? `\nimport { users } from "./auth";` : ""
       }
 
 export const subscriptions = pgTable(
   "subscriptions",
   {
     userId: varchar("user_id", { length: 255 })
-      .unique()${
-        authSubtype === "self-hosted"
-          ? "\n      .references(() => users.id)"
-          : ""
-      },
+      .unique()${usesDatabaseUser ? "\n      .references(() => users.id)" : ""},
     stripeCustomerId: varchar("stripe_customer_id", { length: 255 }).unique(),
     stripeSubscriptionId: varchar("stripe_subscription_id", {
       length: 255,
@@ -1011,18 +1007,14 @@ export const subscriptions = mysqlTable(
   integer,
   text
 } from "drizzle-orm/sqlite-core";${
-        authSubtype === "self-hosted" ? `\nimport { users } from "./auth";` : ""
+        usesDatabaseUser ? `\nimport { users } from "./auth";` : ""
       }
 
 export const subscriptions = sqliteTable(
   "subscriptions",
   {
     userId: text("user_id")
-      .unique()${
-        authSubtype === "self-hosted"
-          ? "\n      .references(() => users.id)"
-          : ""
-      },
+      .unique()${usesDatabaseUser ? "\n      .references(() => users.id)" : ""},
     stripeCustomerId: text("stripe_customer_id").unique(),
     stripeSubscriptionId: text("stripe_subscription_id").unique(),
     stripePriceId: text("stripe_price_id"),

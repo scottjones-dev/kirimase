@@ -1,4 +1,4 @@
-import { AuthProvider } from "./commands/add/auth/next-auth/utils.ts";
+import type { AuthProvider } from "./commands/add/auth/shared/providers.js";
 
 export type DBType = "pg" | "mysql" | "sqlite";
 export interface DBProviderItem {
@@ -67,21 +67,17 @@ export interface DBField<T extends ColumnType = ColumnType> {
 export type AvailablePackage =
   | "drizzle"
   | "trpc"
-  | "next-auth"
   | "shadcn-ui"
   | "prisma"
   | "clerk"
   | "resend"
-  | "lucia"
-  | "kinde"
   | "stripe";
 
 export type PackageType = "orm" | "auth" | "componentLib" | "misc";
 export type ComponentLibType = "shadcn-ui";
 export type ORMType = "drizzle" | "prisma";
-export type AuthType = "next-auth" | "clerk" | "lucia" | "kinde";
+export type AuthType = "clerk";
 export type MiscType = "trpc" | "stripe" | "resend";
-export type AuthSubType = "self-hosted" | "managed";
 
 export interface Config {
   alias: string;

@@ -14,6 +14,7 @@ import {
   getDbIndexPath,
   getFilePaths,
 } from "../../../filePaths/index.js";
+import { authUsesDatabaseUser } from "../../auth/shared/integration.js";
 import { addToInstallList } from "../../utils.js";
 
 type DBDialectType = Exclude<DBType, "pg"> | "postgresql";
@@ -422,7 +423,7 @@ runMigrate().catch((err) => {
 };
 
 export const createInitSchema = (_libPath?: string, dbType?: DBType) => {
-  const { packages, driver, rootPath } = readConfigFile();
+  const { auth, driver, rootPath } = readConfigFile();
   const {
     shared: {
       auth: { authSchema },
@@ -430,11 +431,12 @@ export const createInitSchema = (_libPath?: string, dbType?: DBType) => {
   } = getFilePaths();
   const schemaPath = `${rootPath}lib/db/schema/computers.ts`;
   const dbDriver = dbType ?? driver;
+  const usesDatabaseUser = authUsesDatabaseUser(auth);
   let initModel = "";
   switch (dbDriver) {
     case "pg":
       initModel = `import { pgTable, serial, text, integer } from "drizzle-orm/pg-core";${
-        packages.includes("next-auth")
+        usesDatabaseUser
           ? `\nimport { users } from "${formatFilePath(authSchema, {
               prefix: "alias",
               removeExtension: true,
@@ -446,7 +448,7 @@ export const computers = pgTable("computers", {
   id: serial("id").primaryKey(),
   brand: text("brand").notNull(),
   cores: integer("cores").notNull(),${
-    packages.includes("next-auth")
+    usesDatabaseUser
       ? '\nuserId: integer("user_id").notNull().references(() => users.id)'
       : ""
   }
@@ -455,7 +457,7 @@ export const computers = pgTable("computers", {
 
     case "mysql":
       initModel = `import { mysqlTable, serial, varchar, int } from "drizzle-orm/mysql-core";${
-        packages.includes("next-auth")
+        usesDatabaseUser
           ? `\nimport { users } from "${formatFilePath(authSchema, {
               prefix: "alias",
               removeExtension: true,
@@ -467,7 +469,7 @@ export const computers = mysqlTable("computers", {
   id: serial("id").primaryKey(),
   brand: varchar("brand", {length: 256}).notNull(),
   cores: int("cores").notNull(),${
-    packages.includes("next-auth")
+    usesDatabaseUser
       ? '\nuserId: integer("user_id").notNull().references(() => users.id)'
       : ""
   }
@@ -475,7 +477,7 @@ export const computers = mysqlTable("computers", {
       break;
     case "sqlite":
       initModel = `import { sqliteTable, integer, text } from "drizzle-orm/sqlite-core";${
-        packages.includes("next-auth")
+        usesDatabaseUser
           ? `\nimport { users } from "${formatFilePath(authSchema, {
               prefix: "alias",
               removeExtension: true,
@@ -487,7 +489,7 @@ export const computers = sqliteTable("computers", {
   id: integer("id").primaryKey(),
   brand: text("brand").notNull(),
   cores: integer("cores").notNull(),${
-    packages.includes("next-auth")
+    usesDatabaseUser
       ? '\nuserId: integer("user_id").notNull().references(() => users.id)'
       : ""
   }

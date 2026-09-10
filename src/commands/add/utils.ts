@@ -2,8 +2,6 @@ import fs from "node:fs";
 import chalk from "chalk";
 import { consola } from "consola";
 import type {
-  AuthSubType,
-  AuthType,
   AvailablePackage,
   InitOptions,
   PackageType,
@@ -15,7 +13,7 @@ import {
   replaceFile,
 } from "../../utils.js";
 import { formatFilePath, getFilePaths } from "../filePaths/index.js";
-import { AuthProviders } from "./auth/next-auth/utils.js";
+import { AuthProviders } from "./auth/shared/providers.js";
 import { spinner } from "./index.js";
 
 export const Packages: {
@@ -25,12 +23,7 @@ export const Packages: {
     disabled?: boolean;
   }[];
 } = {
-  auth: [
-    { name: "Auth.js (NextAuth)", value: "next-auth" },
-    { name: "Clerk", value: "clerk" },
-    { name: "Lucia", value: "lucia" },
-    { name: "Kinde", value: "kinde" },
-  ],
+  auth: [{ name: "Clerk", value: "clerk" }],
   componentLib: [{ name: "Shadcn UI (with next-themes)", value: "shadcn-ui" }],
   misc: [
     { name: "TRPC", value: "trpc" },
@@ -114,7 +107,6 @@ export const addAuthCheckToAppLayout = () => {
 };
 export const addContextProviderToAppLayout = (
   provider:
-    | "NextAuthProvider"
     | "TrpcProvider"
     | "ShadcnToast"
     | "ClerkProvider"
@@ -136,16 +128,10 @@ export const addContextProviderToAppLayout = (
   const beforeImport = fileContent.slice(0, nextLineAfterLastImport);
   const afterImport = fileContent.slice(nextLineAfterLastImport);
 
-  const { trpc, "next-auth": nextAuth, shared } = getFilePaths();
+  const { trpc, shared } = getFilePaths();
 
   let importStatement: string;
   switch (provider) {
-    case "NextAuthProvider":
-      importStatement = `import NextAuthProvider from "${formatFilePath(
-        nextAuth.authProviderComponent,
-        { prefix: "alias", removeExtension: true }
-      )}";`;
-      break;
     case "TrpcProvider":
       importStatement = `import TrpcProvider from "${formatFilePath(
         trpc.trpcProvider,
@@ -212,11 +198,7 @@ export const addContextProviderToAppLayout = (
 };
 
 export const addContextProviderToAuthLayout = (
-  provider:
-    | "NextAuthProvider"
-    | "TrpcProvider"
-    | "ShadcnToast"
-    | "ClerkProvider"
+  provider: "TrpcProvider" | "ShadcnToast" | "ClerkProvider"
 ) => {
   const { hasSrc, alias } = readConfigFile();
   const path = `${hasSrc ? "src/" : ""}app/(auth)/layout.tsx`;
@@ -234,16 +216,10 @@ export const addContextProviderToAuthLayout = (
   const beforeImport = fileContent.slice(0, nextLineAfterLastImport);
   const afterImport = fileContent.slice(nextLineAfterLastImport);
 
-  const { trpc, "next-auth": nextAuth } = getFilePaths();
+  const { trpc } = getFilePaths();
 
   let importStatement: string;
   switch (provider) {
-    case "NextAuthProvider":
-      importStatement = `import NextAuthProvider from "${formatFilePath(
-        nextAuth.authProviderComponent,
-        { prefix: "alias", removeExtension: true }
-      )}";`;
-      break;
     case "TrpcProvider":
       importStatement = `import TrpcProvider from "${formatFilePath(
         trpc.trpcProvider,
@@ -287,13 +263,6 @@ export const addContextProviderToAuthLayout = (
     replacementText
   );
   replaceFile(path, newLayoutContent);
-};
-
-export const AuthSubTypeMapping: Record<AuthType, AuthSubType> = {
-  clerk: "managed",
-  kinde: "managed",
-  lucia: "managed",
-  "next-auth": "self-hosted",
 };
 
 const installList: { regular: string[]; dev: string[] } = {
@@ -353,18 +322,10 @@ const describeOrm = (options: InitOptions) => {
   return options.orm === "prisma" ? `${chalk.underline("ORM")}: Prisma` : null;
 };
 
-const describeAuth = (options: InitOptions) => {
-  if (options.auth === "next-auth") {
-    const providers = options.authProviders?.length
-      ? ` (with ${options.authProviders.join(", ")} providers)`
-      : "";
-    return `${chalk.underline("Authentication")}: Auth.js${providers}`;
-  }
-  const authNames = { clerk: "Clerk", kinde: "Kinde", lucia: "Lucia" } as const;
-  return options.auth
-    ? `${chalk.underline("Authentication")}: ${authNames[options.auth]}`
+const describeAuth = (options: InitOptions) =>
+  options.auth === "clerk"
+    ? `${chalk.underline("Authentication")}: Clerk`
     : null;
-};
 
 const describeSelectedPackages = (options: InitOptions) => {
   const descriptions = [describeOrm(options), describeAuth(options)];
@@ -407,11 +368,7 @@ export const printNextSteps = (
   ];
   const runMigration =
     (promptResponses.orm && promptResponses.includeExample) ||
-    (promptResponses.orm &&
-      promptResponses.auth !== "clerk" &&
-      promptResponses.auth !== "kinde") ||
-    promptResponses.auth === "lucia" ||
-    promptResponses.auth === "next-auth" ||
+    (promptResponses.orm && promptResponses.auth !== "clerk") ||
     promptResponses.miscPackages?.includes("stripe");
 
   const includesStripe = promptResponses.miscPackages?.includes("stripe");

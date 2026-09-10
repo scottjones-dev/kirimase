@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { consola } from "consola";
+import { assertNoLegacyAuthDependencies } from "../../legacy-auth.js";
 import type {
   AuthType,
   AvailablePackage,
@@ -43,8 +44,6 @@ export const DBProviders: DBProviderOptions = {
 const packageSignatures: Partial<Record<AvailablePackage, string[]>> = {
   clerk: ["@clerk/nextjs"],
   drizzle: ["drizzle-orm", "drizzle-kit"],
-  lucia: ["lucia"],
-  "next-auth": ["next-auth", "@auth/core"],
   prisma: ["prisma"],
   resend: ["resend"],
   stripe: ["stripe", "@stripe/stripe-js"],
@@ -56,8 +55,6 @@ const packageCategories: Partial<
 > = {
   clerk: "auth",
   drizzle: "orm",
-  lucia: "auth",
-  "next-auth": "auth",
   prisma: "orm",
   resend: null,
   stripe: null,
@@ -166,6 +163,10 @@ export const checkForExistingPackages = async (_rootPath: string) => {
     regular: pkgDependencies.dependencies,
   };
   const dependenciesStringified = JSON.stringify(allDependencies);
+  assertNoLegacyAuthDependencies({
+    ...(allDependencies.dev ?? {}),
+    ...(allDependencies.regular ?? {}),
+  });
   detectPackages(dependenciesStringified, configObj);
 
   // check for shadcn ui

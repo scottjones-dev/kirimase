@@ -3,6 +3,7 @@ import path from "node:path";
 import { consola } from "consola";
 import { execa } from "execa";
 import { spinner } from "./commands/add/index.js";
+import { assertNoLegacyAuthConfig } from "./legacy-auth.js";
 import type {
   AvailablePackage,
   Config,
@@ -132,7 +133,9 @@ export const readConfigFile = (): (Config & { rootPath: string }) | null => {
   const configJsonData = fs.readFileSync(configPath, "utf-8");
 
   // Parse package.json content
-  const config: Config = JSON.parse(configJsonData);
+  const parsedConfig: unknown = JSON.parse(configJsonData);
+  assertNoLegacyAuthConfig(parsedConfig);
+  const config = parsedConfig as Config;
 
   const rootPath = config.hasSrc ? "src/" : "";
   return { ...config, rootPath };
@@ -208,7 +211,7 @@ export const updateConfigFileAfterUpdate = () => {
   const { packages, orm, auth } = readConfigFile();
   if (orm === undefined || auth === undefined) {
     const updatedOrm = packages.includes("drizzle") ? "drizzle" : null;
-    const updatedAuth = packages.includes("next-auth") ? "next-auth" : null;
+    const updatedAuth = packages.includes("clerk") ? "clerk" : null;
     updateConfigFile({ auth: updatedAuth, orm: updatedOrm });
     consola.info("Config file updated.");
   } else {

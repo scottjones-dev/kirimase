@@ -21,7 +21,7 @@ import {
   addContextProviderToAuthLayout,
   addToInstallList,
 } from "../../utils.js";
-import { updateTrpcWithSessionIfInstalled } from "../shared/index.js";
+import { updateTrpcWithSessionIfInstalled } from "../shared/trpc.js";
 import { clerkGenerators } from "./generators.js";
 
 export const addClerk = (options: InitOptions) => {

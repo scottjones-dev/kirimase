@@ -7,8 +7,8 @@ import type {
   ORMType,
 } from "../../../../../types.js";
 import { readConfigFile } from "../../../../../utils.js";
+import { authUsesDatabaseUser } from "../../../../add/auth/shared/integration.js";
 import { checkTimestampsInUtils } from "../../../../add/orm/drizzle/utils.js";
-import { AuthSubTypeMapping } from "../../../../add/utils.js";
 import { formatFilePath, getFilePaths } from "../../../../filePaths/index.js";
 import type { Schema, TypeMap } from "../../../types.js";
 import {
@@ -66,7 +66,7 @@ const generateImportStatement = (
 ) => {
   const { alias } = readConfigFile();
   const { fields, belongsToUser, tableName } = schema;
-  const authSubType = AuthSubTypeMapping[authType];
+  const usesDatabaseUser = authUsesDatabaseUser(authType);
   const { tableNameCamelCase, tableNameCapitalised, tableNameSingular } =
     formatTableName(tableName);
   const { shared } = getFilePaths();
@@ -89,7 +89,7 @@ const generateImportStatement = (
       )}${schema.index ? ", uniqueIndex" : ""} } from "drizzle-orm/${dbType}-core";\nimport { createInsertSchema, createSelectSchema } from "drizzle-zod";\nimport { z } from "zod";\n${
       referenceImports.length > 0 ? referenceImports.join("\n") : ""
     }${
-      belongsToUser && provider !== "planetscale" && authSubType !== "managed"
+      belongsToUser && provider !== "planetscale" && usesDatabaseUser
         ? `\nimport { users } from "${formatFilePath(shared.auth.authSchema, {
             prefix: "alias",
             removeExtension: true,
@@ -159,7 +159,7 @@ const addUserReferenceIfBelongsToUser = (
   mappings: TypeMap,
   authType: AuthType
 ) => {
-  const authSubtype = AuthSubTypeMapping[authType];
+  const usesDatabaseUser = authUsesDatabaseUser(authType);
   const value = schema.belongsToUser
     ? `,\n  userId: ${mappings.typeMappings
         .references({
@@ -174,7 +174,7 @@ const addUserReferenceIfBelongsToUser = (
     `.references(() => users.id, { onDelete: "cascade" })`,
     ""
   );
-  return authSubtype === "managed" ? valueIfManaged : value;
+  return usesDatabaseUser ? value : valueIfManaged;
 };
 
 const generateDrizzleSchema = (
@@ -313,7 +313,7 @@ const generatePrismaSchema = (
   const { tableNameSingularCapitalised, tableNameCamelCase } = formatTableName(
     schema.tableName
   );
-  const authSubtype = AuthSubTypeMapping[authType];
+  const usesDatabaseUser = authUsesDatabaseUser(authType);
   const relations = schema.fields.filter(
     (field) => field.type === "References"
   );
@@ -326,9 +326,9 @@ const generatePrismaSchema = (
   ${
     schema.belongsToUser
       ? `userId String${
-          authSubtype === "managed"
-            ? ""
-            : "\n  user User @relation(fields: [userId], references: [id], onDelete: Cascade)"
+          usesDatabaseUser
+            ? "\n  user User @relation(fields: [userId], references: [id], onDelete: Cascade)"
+            : ""
         }`
       : ""
   }${generateIndexFields(schema, relations, usingPlanetscale)}${
@@ -336,7 +336,7 @@ const generatePrismaSchema = (
   }
 }`;
   addToPrismaSchema(prismaSchemaContent, tableNameSingularCapitalised);
-  if (schema.belongsToUser && authSubtype === "self-hosted") {
+  if (schema.belongsToUser && usesDatabaseUser) {
     addToPrismaModel(
       "User",
       `${tableNameCamelCase} ${tableNameSingularCapitalised}[]`

@@ -12,7 +12,7 @@
 // add to .env (STRIPE_SECRET_KEY,NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,STRIPE_WEBHOOK_SECRET,NEXT_PUBLIC_STRIPE_MOBILE_PRICE_ID) [done]
 // install packages [done]
 
-import fs, { existsSync } from "node:fs";
+import fs from "node:fs";
 import path from "node:path";
 import { consola } from "consola";
 import type { AvailablePackage, InitOptions } from "../../../../types.js";
@@ -31,11 +31,11 @@ import {
   addToPrismaSchema,
 } from "../../../generate/utils.js";
 import { addToClerkIgnoredRoutes } from "../../auth/clerk/utils.js";
-import { libAuthUtilsTsWithoutAuthOptions } from "../../auth/next-auth/generators.js";
 import { createAccountPage } from "../../auth/shared/generators.js";
+import { authUsesDatabaseUser } from "../../auth/shared/integration.js";
 import { addPackage } from "../../index.js";
 import { addToDotEnv } from "../../orm/drizzle/generators.js";
-import { AuthSubTypeMapping, addToInstallList } from "../../utils.js";
+import { addToInstallList } from "../../utils.js";
 import {
   createAccountTRPCRouter,
   generateBillingCard,
@@ -66,7 +66,7 @@ export const addStripe = async (
   const { stripe, shared } = getFilePaths();
 
   const packages = packagesBeingInstalled.concat(installedPackages);
-  const authSubtype = AuthSubTypeMapping[auth];
+  const usesDatabaseUser = authUsesDatabaseUser(auth);
 
   if (orm === null || orm === undefined || driver === undefined) {
     consola.warn("You cannot install Stripe without an ORM installed.");
@@ -74,18 +74,6 @@ export const addStripe = async (
     await addPackage();
     return;
   }
-  if (t3 && auth === "next-auth") {
-    const authUtilsPath = formatFilePath(shared.auth.authUtils, {
-      prefix: "rootPath",
-      removeExtension: false,
-    });
-
-    const authUtilsExist = existsSync(authUtilsPath);
-    if (!authUtilsExist) {
-      createFile(authUtilsPath, libAuthUtilsTsWithoutAuthOptions());
-    }
-  }
-
   if (auth === "clerk") {
     addToClerkIgnoredRoutes("/api/webhooks/stripe");
   }
@@ -95,9 +83,9 @@ export const addStripe = async (
     addToPrismaSchema(
       `model Subscription {
   userId                 String    @unique${
-    authSubtype === "managed"
-      ? ""
-      : "\n  user                   User      @relation(fields: [userId], references: [id])"
+    usesDatabaseUser
+      ? "\n  user                   User      @relation(fields: [userId], references: [id])"
+      : ""
   }
   stripeCustomerId       String    @unique @map(name: "stripe_customer_id")
   stripeSubscriptionId   String?   @unique @map(name: "stripe_subscription_id")
@@ -109,7 +97,7 @@ export const addStripe = async (
 `,
       "Subscription"
     );
-    if (authSubtype !== "managed") {
+    if (usesDatabaseUser) {
       addToPrismaModelBulk("User", "\n  subscription Subscription?");
     }
   }

@@ -15,7 +15,6 @@ import {
   updateConfigFile,
 } from "../../../../utils.js";
 import { formatFilePath, getFilePaths } from "../../../filePaths/index.js";
-import { generateLoadingPage } from "../../auth/lucia/generators.js";
 import {
   addContextProviderToAppLayout,
   addContextProviderToRootLayout,
@@ -23,6 +22,11 @@ import {
   addToShadcnComponentList,
 } from "../../utils.js";
 import { shadcnGenerators } from "./generators.js";
+
+const generateLoadingPage = () => `export default function Loading() {
+  return <div>Loading...</div>;
+}
+`;
 
 const manualInstallShadCn = (
   _preferredPackageManager: PMType,
@@ -148,36 +152,4 @@ export const installShadcnUI = async (
   if (options.headless === undefined) {
     addContextProviderToAppLayout("ShadcnToast");
   }
-
-  // if (packages.includes("next-auth")) updateSignInComponentWithShadcnUI();
-};
-
-export const updateSignInComponentWithShadcnUI = () => {
-  const { hasSrc, alias } = readConfigFile();
-  const filepath = "components/auth/SignIn.tsx";
-  const updatedContent = `"use client";
-import { useSession, signIn, signOut } from "next-auth/react";
-import { Button } from "${alias}/components/ui/button";
-
-export default function SignIn() {
-  const { data: session, status } = useSession();
-
-  if (status === "loading") return <div>Loading...</div>;
-
-  if (session) {
-    return (
-      <>
-        Signed in as {session.user?.email} <br />
-        <Button variant={"destructive"} onClick={() => signOut({ callbackUrl: "/" })}>Sign out</Button>
-      </>
-    );
-  }
-  return (
-    <>
-      Not signed in <br />
-      <Button onClick={() => signIn()}>Sign in</Button>
-    </>
-  );
-}`;
-  replaceFile(`${hasSrc ? "src/" : ""}${filepath}`, updatedContent);
 };

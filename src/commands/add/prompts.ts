@@ -13,7 +13,7 @@ import type {
 } from "../../types.js";
 import { readConfigFile } from "../../utils.js";
 import { DBProviders } from "../init/utils.js";
-import { type AuthProvider, AuthProviders } from "./auth/next-auth/utils.js";
+import { type AuthProvider, AuthProviders } from "./auth/shared/providers.js";
 import { Packages } from "./utils.js";
 
 const nullOption = { name: "None", value: null };

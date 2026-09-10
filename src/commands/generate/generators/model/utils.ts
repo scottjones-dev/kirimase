@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import type { AuthType } from "../../../../types.js";
 import { createFile, readConfigFile, replaceFile } from "../../../../utils.js";
+import { getAuthIntegration } from "../../../add/auth/shared/integration.js";
 import { formatFilePath, getFilePaths } from "../../../filePaths/index.js";
 import type { ORMTypeMap, TypeMap } from "../../types.js";
 import {
@@ -40,7 +41,7 @@ export const prismaMappings = {
 } as TypeMap;
 
 export const createOrmMappings = () => {
-  const { provider, auth } = readConfigFile();
+  const { provider } = readConfigFile();
   return {
     drizzle: {
       mysql: {
@@ -114,13 +115,9 @@ export const createOrmMappings = () => {
             cascade,
             referenceIdType = "string",
           }) =>
-            `${getReferenceFieldType(referenceIdType).sqlite}("${name}")${
-              auth === "lucia"
-                ? ""
-                : `.references(() => ${toCamelCase(referencedTable)}.id${
-                    cascade ? ', { onDelete: "cascade" }' : ""
-                  })`
-            }`,
+            `${getReferenceFieldType(referenceIdType).sqlite}("${name}").references(() => ${toCamelCase(referencedTable)}.id${
+              cascade ? ', { onDelete: "cascade" }' : ""
+            })`,
           string: ({ name }) => `text("${name}")`,
           timestamp: ({ name }) =>
             `integer("${name}", { mode: "timestamp_ms" })`,
@@ -154,23 +151,8 @@ export const updateRootSchema = (
     removeExtension: false,
   });
 
-  let tableNames = "";
-  switch (auth) {
-    case "next-auth":
-      tableNames = "users, accounts, sessions, verificationTokens";
-      break;
-    case "clerk":
-      break;
-    case "kinde":
-      break;
-    case "lucia":
-      tableNames = "keys, users, sessions";
-      break;
-    default:
-      if (auth !== undefined) {
-        throw new Error(`Unsupported authentication type: ${auth}`);
-      }
-  }
+  const tableNames =
+    getAuthIntegration(auth ?? null)?.schemaExportNames.join(", ") ?? "";
 
   const newImportStatement = usingAuth
     ? `import { ${tableNames} } from "./auth"`

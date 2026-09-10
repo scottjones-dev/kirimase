@@ -14,24 +14,6 @@ export const paths: { t3: Paths; normal: Paths } = {
       dbMigrate: "lib/db/migrate.ts",
       migrationsDir: "lib/db/migrations",
     },
-    kinde: {
-      routeHandler: "app/api/auth/[kindeAuth]/route.ts",
-      signInPage: "app/(auth)/sign-in/page.tsx",
-    },
-    lucia: {
-      formErrorComponent: "components/auth/AuthFormError.tsx",
-      libAuthLucia: "lib/auth/lucia.ts",
-      signInPage: "app/(auth)/sign-in/page.tsx",
-      signOutButtonComponent: "components/auth/SignOutBtn.tsx",
-      signUpPage: "app/(auth)/sign-up/page.tsx",
-      usersActions: "lib/actions/users.ts",
-    },
-    "next-auth": {
-      authProviderComponent: "lib/auth/Provider.tsx",
-      nextAuthApiRoute: "app/api/auth/[...nextauth]/route.ts",
-      signInPage: "app/(auth)/sign-in/page.tsx",
-      signOutButtonComponent: "components/auth/SignOutBtn.tsx",
-    },
     prisma: { dbIndex: "lib/db/index.ts" },
     resend: {
       emailApiRoute: "app/api/email/route.ts",
@@ -107,24 +89,6 @@ export const paths: { t3: Paths; normal: Paths } = {
       migrationsDir: "server/db/migrations",
       schemaAggregator: "server/db/schema/_root.ts",
       schemaTs: "server/db/schema.ts",
-    },
-    kinde: {
-      routeHandler: "app/api/auth/[kindeAuth]/route.ts",
-      signInPage: "app/(auth)/sign-in/page.tsx",
-    },
-    lucia: {
-      formErrorComponent: "components/auth/AuthFormError.tsx",
-      libAuthLucia: "lib/auth/lucia.ts",
-      signInPage: "app/(auth)/sign-in/page.tsx",
-      signOutButtonComponent: "components/auth/SignOutBtn.tsx",
-      signUpPage: "app/(auth)/sign-up/page.tsx",
-      usersActions: "lib/actions/users.ts",
-    },
-    "next-auth": {
-      authProviderComponent: "lib/auth/Provider.tsx",
-      nextAuthApiRoute: "app/api/auth/[...nextauth]/route.ts",
-      signInPage: "app/(auth)/sign-in/page.tsx",
-      signOutButtonComponent: "components/auth/SignOutBtn.tsx",
     },
     prisma: { dbIndex: "server/db.ts" },
     resend: {

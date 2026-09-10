@@ -80,26 +80,10 @@ Initializes and configures the following packages for your Next.js project, cate
 
 ### Authentication
 
-#### Auth.js
-
-- Generates files for [Auth.js](https://github.com/nextauthjs/next-auth) (Next-Auth), including the latest Drizzle adapter. (For PlanetScale, references are excluded as it doesn't support foreign keys).
-- Generates a generic sign-in component for immediate use within your Next.js project.
-- Wraps the root layout with the auth provider and generates utilities for auth checks and redirects in your Next.js routes.
-
 #### Clerk
 
 - Generates files for [Clerk](https://github.com/clerkinc/javascript) including all necessary config.
 - Wraps the root layout with the auth provider and generates utilities for auth checks and redirects in your Next.js routes.
-
-#### Lucia
-
-- Generates files for [Lucia](https://github.com/lucia-auth/lucia) including all necessary config.
-- Generates UI and API routes for sign-in and sign-up
-
-#### Kinde
-
-- Generates files for [Kinde](https://github.com/kinde-oss/kinde-auth-nextjs) including all necessary config.
-- Generates sign in component and route handler
 
 ---
 
@@ -160,7 +144,7 @@ Kirimase generates:
 As of v0.0.23, you can run `kirimase init` and `kirimase add` entirely via the command line as follows:
 
 ```sh
-kirimase init -sf yes -pm bun --orm prisma -db pg -a next-auth -ap github discord -mp trpc stripe resend -cl shadcn-ui -ie yes
+kirimase init -sf yes -pm bun --orm prisma -db pg -a clerk -mp trpc stripe resend -cl shadcn-ui -ie yes
 ```
 
 | Command | Short Flag | Long Option       | Description                                    | Argument          |
@@ -174,7 +158,7 @@ kirimase init -sf yes -pm bun --orm prisma -db pg -a next-auth -ap github discor
 | -       | -db        | --db              | database ("pg", "mysql", "sqlite")             | `<db>`            |
 | -       | -dbp       | --db-provider     | database provider - important if using drizzle | `<dbp>`           |
 | -       | -a         | --auth            | auth                                           | `<auth>`          |
-| -       | -ap        | --auth-providers  | auth providers (if using next-auth)            | `<providers>`     |
+| -       | -ap        | --auth-providers  | social auth providers                          | `<providers>`     |
 | -       | -mp        | --misc-packages   | packages ("trpc", "shadcn-ui", "resend")       | `<packages>`      |
 | -       | -ie        | --include-example | include example                                | `yes` or `no`     |
 
