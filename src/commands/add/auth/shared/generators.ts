@@ -41,8 +41,8 @@ export const createUpdateNameCard = (
     if (serverActions) {
       return `"use client";
 
-import { useEffect } from "react";
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState, useEffect } from "react";
+import { useFormStatus } from "react-dom";
 
 import { AccountCard, AccountCardFooter, AccountCardBody } from "./AccountCard";
 import { updateUser } from "${formatFilePath("lib/actions/users.ts", { prefix: "alias", removeExtension: true })}";
@@ -52,7 +52,7 @@ import { Input } from "${formatFilePath("components/ui/input", { prefix: "alias"
 import { Button } from "${formatFilePath("components/ui/button", { prefix: "alias", removeExtension: false })}";
 
 export default function UpdateNameCard({ name }: { name: string }) {
-  const [state, formAction] = useFormState(updateUser, {
+  const [state, formAction] = useActionState(updateUser, {
     error: "",
   });
 
@@ -148,14 +148,14 @@ export default function UpdateNameCard({ name }: { name: string }) {
   if (serverActions) {
     return `"use client";
 
-import { useFormState, useFormStatus } from "react-dom";
-import { useEffect } from "react";
+import { useActionState, useEffect } from "react";
+import { useFormStatus } from "react-dom";
 
 import { updateUser } from "${formatFilePath("lib/actions/users.ts", { prefix: "alias", removeExtension: true })}";
 import { AccountCard, AccountCardFooter, AccountCardBody } from "./AccountCard";
 
 export default function UpdateNameCard({ name }: { name: string }) {
-  const [state, formAction] = useFormState(updateUser, {
+  const [state, formAction] = useActionState(updateUser, {
     error: "",
   });
 
@@ -268,8 +268,8 @@ export const createUpdateEmailCard = (
     if (serverActions) {
       return `"use client";
 
-import { useEffect } from "react";
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState, useEffect } from "react";
+import { useFormStatus } from "react-dom";
 
 import { AccountCard, AccountCardFooter, AccountCardBody } from "./AccountCard";
 import { updateUser } from "${formatFilePath("lib/actions/users.ts", { prefix: "alias", removeExtension: true })}";
@@ -279,7 +279,7 @@ import { Input } from "${formatFilePath("components/ui/input", { prefix: "alias"
 import { Button } from "${formatFilePath("components/ui/button", { prefix: "alias", removeExtension: false })}";
 
 export default function UpdateEmailCard({ email }: { email: string }) {
-  const [state, formAction] = useFormState(updateUser, {
+  const [state, formAction] = useActionState(updateUser, {
     error: "",
   });
 
@@ -376,14 +376,14 @@ export default function UpdateEmailCard({ email }: { email: string }) {
   if (serverActions) {
     return `"use client";
 
-import { useFormState, useFormStatus } from "react-dom";
-import { useEffect } from "react";
+import { useActionState, useEffect } from "react";
+import { useFormStatus } from "react-dom";
 
 import { updateUser } from "${formatFilePath("lib/actions/users.ts", { prefix: "alias", removeExtension: true })}";
 import { AccountCard, AccountCardFooter, AccountCardBody } from "./AccountCard";
 
 export default function UpdateEmailCard({ email }: { email: string }) {
-  const [state, formAction] = useFormState(updateUser, {
+  const [state, formAction] = useActionState(updateUser, {
     error: "",
   });
 

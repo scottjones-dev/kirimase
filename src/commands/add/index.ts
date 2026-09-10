@@ -9,6 +9,7 @@ import { checkForExistingPackages } from "../init/utils.js";
 import { addBetterAuth } from "./auth/better-auth/index.js";
 import { addClerk } from "./auth/clerk/index.js";
 import { createAccountSettingsPage } from "./auth/shared/index.js";
+import type { AuthProvider } from "./auth/shared/providers.js";
 import { installShadcnUI } from "./componentLib/shadcn-ui/index.js";
 import {
   createAppLayoutFile,
@@ -64,6 +65,19 @@ const askForOrm = async (config: ProjectConfig, options?: InitOptions) => {
   return orm;
 };
 
+// Commander reports `true` (not `[]`) for an optional-variadic option
+// (`-ap` / `--auth-providers`) given with zero values; InitOptions'
+// declared type doesn't capture that runtime quirk, so it's normalized
+// here at the boundary where the raw CLI value is first read.
+const normalizeAuthProviders = (
+  value: InitOptions["authProviders"]
+): AuthProvider[] | undefined => {
+  if (value === undefined || value === null) {
+    return;
+  }
+  return (value as unknown) === true ? [] : value;
+};
+
 const promptUser = async (options?: InitOptions): Promise<InitOptions> => {
   const config = readConfigFile();
   // console.log(config);
@@ -102,7 +116,8 @@ const promptUser = async (options?: InitOptions): Promise<InitOptions> => {
 
   const authProviders =
     auth === "better-auth"
-      ? (options?.authProviders ?? (await askAuthProvider()))
+      ? (normalizeAuthProviders(options?.authProviders) ??
+        (await askAuthProvider()))
       : undefined;
 
   const hasOrmAndAuth = !!(

@@ -9,8 +9,8 @@ const generateMiddlewareTs =
 // See https://clerk.com/docs/references/nextjs/clerk-middleware for more information about configuring your middleware
 const isProtectedRoute = createRouteMatcher([]);
 
-export default clerkMiddleware((auth, req) => {
-  if (isProtectedRoute(req)) auth().protect();
+export default clerkMiddleware(async (auth, req) => {
+  if (isProtectedRoute(req)) await auth.protect();
 });
 
 export const config = {
@@ -102,7 +102,7 @@ export type AuthSession = {
 
 export const getUserAuth = async () => {
   // find out more about setting up 'sessionClaims' (custom sessions) here: https://clerk.com/docs/backend-requests/making/custom-session-token
-  const { userId, sessionClaims } = auth();
+  const { userId, sessionClaims } = await auth();
   if (userId) {
     return {
       session: {
@@ -119,7 +119,7 @@ export const getUserAuth = async () => {
 };
 
 export const checkAuth = async () => {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) redirect("/sign-in");
 };`;
 

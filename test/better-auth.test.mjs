@@ -34,6 +34,7 @@ const EMPTY_SCHEMA_EXPORT_PATTERN = /export \{\};/;
 const DATASOURCE_PATTERN = /datasource db/;
 const USER_MODEL_PATTERN = /model User/;
 const SESSION_MODEL_PATTERN = /model Session/;
+const PASSKEY_MODEL_PATTERN = /model Passkey/;
 
 const baseContext = {
   authClientImport: "@/lib/auth-client",
@@ -161,10 +162,26 @@ test("Prisma schema merge appends generated models to the existing schema", () =
   assert.match(merged, SESSION_MODEL_PATTERN);
 });
 
-test("Prisma schema merge refuses to overwrite an existing User model", () => {
-  const existing = "model User {\n  id String @id\n}\n";
-  const generated = "model Session {\n  id String @id\n}\n";
-  assert.throws(() => mergeBetterAuthPrismaSchema(existing, generated));
+test("Prisma schema merge is idempotent when re-run with no new models", () => {
+  const existing =
+    'datasource db {\n  provider = "postgresql"\n}\n\nmodel User {\n  id String @id\n}\n\nmodel Session {\n  id String @id\n}\n';
+  const generated =
+    "model User {\n  id String @id\n}\n\nmodel Session {\n  id String @id\n}\n";
+  const merged = mergeBetterAuthPrismaSchema(existing, generated);
+  assert.equal(merged, existing);
+});
+
+test("Prisma schema merge adds only the new models when re-run after a plugin is added", () => {
+  const existing =
+    'datasource db {\n  provider = "postgresql"\n}\n\nmodel User {\n  id String @id\n}\n\nmodel Session {\n  id String @id\n}\n';
+  const generated =
+    "model User {\n  id String @id\n}\n\nmodel Session {\n  id String @id\n}\n\nmodel Passkey {\n  id String @id\n}\n";
+  const merged = mergeBetterAuthPrismaSchema(existing, generated);
+  assert.match(merged, USER_MODEL_PATTERN);
+  assert.match(merged, SESSION_MODEL_PATTERN);
+  assert.match(merged, PASSKEY_MODEL_PATTERN);
+  assert.equal(merged.match(/model User \{/g)?.length, 1);
+  assert.equal(merged.match(/model Session \{/g)?.length, 1);
 });
 
 test("Prisma schema merge requires the generated schema to contain models", () => {

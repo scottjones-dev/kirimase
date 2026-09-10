@@ -31,7 +31,8 @@
     "dev": "tsc -w",
     "dev2": "node dist/index.js",
     "fix": "ultracite fix",
-    "test": "node --test",
+    "test": "node --test test/*.test.mjs",
+    "test:e2e": "node --test test/e2e/*.test.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

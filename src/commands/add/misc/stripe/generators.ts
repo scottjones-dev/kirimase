@@ -10,7 +10,7 @@ import { authUsesDatabaseUser } from "../../auth/shared/integration.js";
 export const generateStripeIndexTs = () => `import Stripe from "stripe";
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", {
-  apiVersion: "2024-06-20",
+  apiVersion: "2026-08-26.dahlia",
   typescript: true,
 });
 `;

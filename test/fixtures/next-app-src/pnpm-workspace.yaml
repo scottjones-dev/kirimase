@@ -1,0 +1,12 @@
+dangerouslyAllowAllBuilds: true
+# npm's "latest" dist-tag for prisma currently points at an 8.0.0 prerelease
+# with an incompatible, completely redesigned CLI (no `generate`/`db push`),
+# and even the latest stable 7.x major drops inline `datasource { url = }`
+# schema syntax that GenNext's Prisma generator still produces. Pin to the
+# newest 6.x release, the last major compatible with GenNext's current
+# schema format, so this fixture exercises what GenNext actually targets.
+# See spawned follow-up task to fix this in GenNext's own install list
+# (src/commands/add/orm/prisma).
+overrides:
+  prisma: "6.19.3"
+  "@prisma/client": "6.19.3"

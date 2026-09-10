@@ -8,7 +8,7 @@ import {
 import type { ORMType, PMType } from "../../../../types.js";
 import { runCommand } from "../../../../utils.js";
 
-const PRISMA_DECLARATION_PATTERN = /(?:enum|model|type)\s+[A-Za-z_][\s\S]*/;
+const PRISMA_BLOCK_PATTERN = /(?:enum|model|type)\s+(\w+)\s*\{[^}]*\}/g;
 
 export interface BetterAuthSchemaOptions {
   authConfigPath: string;
@@ -45,23 +45,32 @@ export const getBetterAuthSchemaCommand = (
   }
 };
 
+const extractPrismaBlocks = (schema: string) => {
+  const blocks = new Map<string, string>();
+  for (const match of schema.matchAll(PRISMA_BLOCK_PATTERN)) {
+    blocks.set(match[1], match[0].trim());
+  }
+  return blocks;
+};
+
 export const mergeBetterAuthPrismaSchema = (
   existingSchema: string,
   generatedSchema: string
 ) => {
-  if (
-    existingSchema.includes("model User {") ||
-    existingSchema.includes("model Account {")
-  ) {
-    throw new Error(
-      "Prisma already contains authentication models. Merge the Better Auth schema manually before retrying."
-    );
-  }
-  const declarations = generatedSchema.match(PRISMA_DECLARATION_PATTERN)?.[0];
-  if (!declarations) {
+  const generatedBlocks = extractPrismaBlocks(generatedSchema);
+  if (generatedBlocks.size === 0) {
     throw new Error("The Better Auth CLI did not produce Prisma models.");
   }
-  return `${existingSchema.trimEnd()}\n\n${declarations.trim()}\n`;
+
+  const existingBlocks = extractPrismaBlocks(existingSchema);
+  const newBlocks = [...generatedBlocks.entries()]
+    .filter(([name]) => !existingBlocks.has(name))
+    .map(([, block]) => block);
+
+  if (newBlocks.length === 0) {
+    return existingSchema;
+  }
+  return `${existingSchema.trimEnd()}\n\n${newBlocks.join("\n\n")}\n`;
 };
 
 export const generateBetterAuthSchema = async (

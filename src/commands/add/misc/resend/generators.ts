@@ -182,6 +182,7 @@ import { emailSchema } from "${formatFilePath(resend.emailUtils, {
     removeExtension: true,
   })}";
 import { NextResponse } from "next/server";
+import { createElement } from "react";
 
 export async function POST(request: Request) {
   const body = await request.json();
@@ -191,7 +192,7 @@ export async function POST(request: Request) {
       from: "GenNext <onboarding@resend.dev>",
       to: [email],
       subject: "Hello world!",
-      react: EmailTemplate({ firstName: name }),
+      react: createElement(EmailTemplate, { firstName: name }),
       text: "Email powered by Resend.",
     });
 

@@ -30,7 +30,7 @@ import {
 } from "./generators.js";
 import { generateBetterAuthSchema } from "./schema.js";
 
-const BETTER_AUTH_VERSION = "1.7.4";
+const BETTER_AUTH_VERSION = "^1.7.4";
 
 export const addBetterAuth = (
   providers: AuthProvider[] = [],

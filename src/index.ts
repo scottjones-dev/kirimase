@@ -40,8 +40,8 @@ function addCommonOptions(command: Command) {
     .option("-dbp, --db-provider <db>", "database provider")
     .option("-a, --auth <auth>", "preferred auth (better-auth, clerk)")
     .option(
-      "-ap, --auth-providers <auth-providers...>",
-      "social auth providers (discord, google, github, apple)"
+      "-ap, --auth-providers [auth-providers...]",
+      "social auth providers (discord, google, github, apple); pass with no values to select none"
     )
     .option(
       "-mp, --misc-packages <packages...>",
