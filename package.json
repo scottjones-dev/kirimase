@@ -23,7 +23,7 @@
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "gennext": "./dist/index.js"
+    "gennext": "dist/index.js"
   },
   "files": [
     "dist",
