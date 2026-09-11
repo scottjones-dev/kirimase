@@ -20,6 +20,7 @@ import {
 } from "./misc/defaultStyles/generators.js";
 import { addNavbarAndSettings } from "./misc/navbar/generators.js";
 import { addResend } from "./misc/resend/index.js";
+import { addSentry } from "./misc/sentry/index.js";
 import { addStripe } from "./misc/stripe/index.js";
 import { addTrpc } from "./misc/trpc/index.js";
 import { addDrizzle } from "./orm/drizzle/index.js";
@@ -264,6 +265,10 @@ const configureMiscPackages = async (
   if (packages.includes("stripe")) {
     spinner.text = "Configuring Stripe";
     await addStripe(packages, options);
+  }
+  if (packages.includes("sentry")) {
+    spinner.text = "Configuring Sentry";
+    addSentry(packages, options);
   }
 };
 

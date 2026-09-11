@@ -84,6 +84,7 @@ test("Drizzle + Postgres + Better Auth (email) + tRPC scaffolds and typechecks",
       "shadcn-ui",
       "-mp",
       "trpc",
+      "sentry",
       "-a",
       "better-auth",
       // `-ap` with no values selects zero social providers. Combining
