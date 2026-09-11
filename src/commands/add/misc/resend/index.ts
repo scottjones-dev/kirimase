@@ -46,7 +46,7 @@ export const addResend = (
     }),
     generateEmailLayoutComponent()
   );
-  // 2b. Add component at components/emails/FirstEmailTemplate.tsx
+  // 2b. Add component at components/emails/FirstEmail.tsx
   createFile(
     formatFilePath(resend.firstEmailComponent, {
       prefix: "rootPath",
