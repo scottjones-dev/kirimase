@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.0
+
+### Minor Changes
+
+- [#4](https://github.com/scottjones-dev/gennext/pull/4) [`591a3bb`](https://github.com/scottjones-dev/gennext/commit/591a3bb6cfe1b1c95a80ae06e613e64f19e795e3) Thanks [@scottjones-dev](https://github.com/scottjones-dev)! - Add a Sentry integration (`gennext add` → misc packages → Sentry). Generates `instrumentation.ts` (server + edge init) and `instrumentation-client.ts` (browser init), wraps the project's `next.config.{ts,mjs,js}` with `withSentryConfig` when its default export shape can be confidently patched (falling back to a manual next-step note otherwise), and adds optional `NEXT_PUBLIC_SENTRY_DSN`/`SENTRY_AUTH_TOKEN`/`SENTRY_ORG`/`SENTRY_PROJECT` env vars.
+
 ## 0.3.0
 
 ### Minor Changes
