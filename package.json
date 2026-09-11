@@ -34,15 +34,18 @@
   ],
   "scripts": {
     "build": "tsc",
+    "changeset": "changeset",
     "check": "ultracite check",
     "clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",
     "dev": "tsc -w",
     "dev2": "node dist/index.js",
     "fix": "ultracite fix",
     "prepublishOnly": "npm run clean && npm run build && npm run check && npm run typecheck && npm test",
+    "release": "npm run build && changeset publish",
     "test": "node --test test/*.test.mjs",
     "test:e2e": "node --test test/e2e/*.test.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "version": "changeset version"
   },
   "dependencies": {
     "@inquirer/prompts": "^3.0.1",
@@ -57,6 +60,8 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.13",
+    "@changesets/changelog-github": "1.0.1",
+    "@changesets/cli": "3.0.2",
     "@types/node": "^24.10.1",
     "typescript": "^5.1.6",
     "ultracite": "7.11.1"
