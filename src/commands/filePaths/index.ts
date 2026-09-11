@@ -23,13 +23,22 @@ export const paths: { t3: Paths; normal: Paths } = {
       dbMigrate: "lib/db/migrate.ts",
       migrationsDir: "lib/db/migrations",
     },
+    posthog: {
+      providerComponent: "components/PostHogProvider.tsx",
+      serverClient: "lib/posthog/server.ts",
+    },
     prisma: { dbIndex: "lib/db/index.ts" },
     resend: {
       emailApiRoute: "app/api/email/route.ts",
+      emailLayoutComponent: "components/emails/EmailLayout.tsx",
       emailUtils: "lib/email/utils.ts",
       firstEmailComponent: "components/emails/FirstEmail.tsx",
       libEmailIndex: "lib/email/index.ts",
       resendPage: "app/(app)/resend/page.tsx",
+    },
+    sentry: {
+      instrumentationClientTs: "instrumentation-client.ts",
+      instrumentationTs: "instrumentation.ts",
     },
     shared: {
       auth: {
@@ -58,6 +67,12 @@ export const paths: { t3: Paths; normal: Paths } = {
         schemaDir: "lib/db/schema",
         servicesDir: "lib/api",
       },
+    },
+    storage: {
+      storageClient: "lib/storage/client.ts",
+      storageIndex: "lib/storage/index.ts",
+      storagePage: "app/(app)/storage/page.tsx",
+      uploadUrlApiRoute: "app/api/storage/upload-url/route.ts",
     },
     stripe: {
       accountBillingPage: "app/(app)/account/billing/page.tsx",
@@ -108,13 +123,22 @@ export const paths: { t3: Paths; normal: Paths } = {
       schemaAggregator: "server/db/schema/_root.ts",
       schemaTs: "server/db/schema.ts",
     },
+    posthog: {
+      providerComponent: "components/PostHogProvider.tsx",
+      serverClient: "lib/posthog/server.ts",
+    },
     prisma: { dbIndex: "server/db.ts" },
     resend: {
       emailApiRoute: "app/api/email/route.ts",
+      emailLayoutComponent: "components/emails/EmailLayout.tsx",
       emailUtils: "lib/email/utils.ts",
       firstEmailComponent: "components/emails/FirstEmail.tsx",
       libEmailIndex: "lib/email/index.ts",
       resendPage: "app/(app)/resend/page.tsx",
+    },
+    sentry: {
+      instrumentationClientTs: "instrumentation-client.ts",
+      instrumentationTs: "instrumentation.ts",
     },
     shared: {
       auth: {
@@ -143,6 +167,12 @@ export const paths: { t3: Paths; normal: Paths } = {
         schemaDir: "server/db/schema",
         servicesDir: "lib/api",
       },
+    },
+    storage: {
+      storageClient: "lib/storage/client.ts",
+      storageIndex: "lib/storage/index.ts",
+      storagePage: "app/(app)/storage/page.tsx",
+      uploadUrlApiRoute: "app/api/storage/upload-url/route.ts",
     },
     stripe: {
       accountBillingPage: "app/(app)/account/billing/page.tsx",

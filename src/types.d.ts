@@ -72,13 +72,23 @@ export type AvailablePackage =
   | "prisma"
   | "clerk"
   | "resend"
-  | "stripe";
+  | "stripe"
+  | "sentry"
+  | "posthog"
+  | "storage";
 
 export type PackageType = "orm" | "auth" | "componentLib" | "misc";
 export type ComponentLibType = "shadcn-ui";
 export type ORMType = "drizzle" | "prisma";
 export type AuthType = "better-auth" | "clerk";
-export type MiscType = "trpc" | "stripe" | "resend";
+export type MiscType =
+  | "trpc"
+  | "stripe"
+  | "resend"
+  | "sentry"
+  | "posthog"
+  | "storage";
+export type StorageProvider = "aws-s3" | "cloudflare-r2" | "custom";
 
 export interface Config {
   alias: string;
@@ -90,6 +100,7 @@ export interface Config {
   packages: AvailablePackage[];
   preferredPackageManager: PMType;
   provider: DBProvider | null;
+  storageProvider?: StorageProvider | null;
   t3: boolean;
 }
 
@@ -107,6 +118,7 @@ export interface InitOptions {
   miscPackages?: AvailablePackage[];
   orm?: ORMType | null;
   packageManager?: PMType;
+  storageProvider?: StorageProvider | null;
 }
 
 // export type BuildOptions = {

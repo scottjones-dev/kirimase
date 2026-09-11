@@ -138,7 +138,54 @@ export default function Home() {
 `;
 };
 
-const generateEmailTemplateComponent = () => `import * as React from "react";
+const generateEmailLayoutComponent = () => `import {
+  Body,
+  Container,
+  Head,
+  Html,
+  Preview,
+} from "@react-email/components";
+import * as React from "react";
+
+interface EmailLayoutProps {
+  children: React.ReactNode;
+  previewText: string;
+}
+
+export const EmailLayout: React.FC<Readonly<EmailLayoutProps>> = ({
+  children,
+  previewText,
+}) => (
+  <Html>
+    <Head />
+    <Preview>{previewText}</Preview>
+    <Body style={main}>
+      <Container style={container}>{children}</Container>
+    </Body>
+  </Html>
+);
+
+const main = {
+  backgroundColor: "#f6f6f6",
+  fontFamily:
+    '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif',
+};
+
+const container = {
+  backgroundColor: "#ffffff",
+  margin: "0 auto",
+  maxWidth: "480px",
+  padding: "32px",
+};
+`;
+
+const generateEmailTemplateComponent = () => `import {
+  Heading,
+  Hr,
+  Text,
+} from "@react-email/components";
+import * as React from "react";
+import { EmailLayout } from "./EmailLayout";
 
 interface EmailTemplateProps {
   firstName: string;
@@ -147,9 +194,9 @@ interface EmailTemplateProps {
 export const EmailTemplate: React.FC<Readonly<EmailTemplateProps>> = ({
   firstName,
 }) => (
-  <div>
-    <h1>Welcome, {firstName}!</h1>
-    <p>
+  <EmailLayout previewText={\`Welcome, \${firstName}!\`}>
+    <Heading as="h1">Welcome, {firstName}!</Heading>
+    <Text>
       Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim
       labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet.
       Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum
@@ -160,10 +207,10 @@ export const EmailTemplate: React.FC<Readonly<EmailTemplateProps>> = ({
       Lorem sunt duis officia eiusmod. Aliqua reprehenderit commodo ex non
       excepteur duis sunt velit enim. Voluptate laboris sint cupidatat ullamco
       ut ea consectetur et est culpa et culpa duis.
-    </p>
-    <hr />
-    <p>Sent with help from Resend and GenNext 😊</p>
-  </div>
+    </Text>
+    <Hr />
+    <Text>Sent with help from Resend and GenNext 😊</Text>
+  </EmailLayout>
 );
 `;
 
@@ -196,6 +243,7 @@ export async function POST(request: Request) {
       text: "Email powered by Resend.",
     });
 
+    // after sending, consider logging to your email_send_log table — see \`gennext generate\` preset "email-log"
     return NextResponse.json(data);
   } catch (error) {
     return NextResponse.json({ error });
@@ -229,6 +277,7 @@ export const emailSchema = z.object({
 export const resendGenerators = {
   generateApiRoute,
   generateEmailIndexTs,
+  generateEmailLayoutComponent,
   generateEmailTemplateComponent,
   generateEmailUtilsTs,
   generateResendPage,
