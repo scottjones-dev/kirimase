@@ -33,6 +33,7 @@ export const Packages: {
     { name: "TRPC", value: "trpc" },
     { name: "Stripe", value: "stripe" },
     { name: "Resend", value: "resend" },
+    { name: "Sentry", value: "sentry" },
   ],
   orm: [
     { name: "Drizzle", value: "drizzle" },
@@ -279,6 +280,14 @@ export const addPostInstallTask = (task: () => Promise<void>) => {
   postInstallTasks.push(task);
 };
 
+const manualSteps: string[] = [];
+
+export const addManualStep = (note: string) => {
+  manualSteps.push(note);
+};
+
+const takeManualSteps = () => manualSteps.splice(0);
+
 export const runPostInstallTasks = async () => {
   await postInstallTasks
     .splice(0)
@@ -347,6 +356,7 @@ const describeSelectedPackages = (options: InitOptions) => {
   const descriptions = [describeOrm(options), describeAuth(options)];
   const miscDescriptions = {
     resend: `${chalk.underline("Email")}: Resend`,
+    sentry: `${chalk.underline("Error Tracking")}: Sentry`,
     stripe: `${chalk.underline("Payments")}: Stripe`,
     trpc: `${chalk.underline("RPC")}: tRPC`,
   } as const;
@@ -440,6 +450,7 @@ export const printNextSteps = (
           "Remember to add Providers for packages (if you installed trpc, shadcn, or clerk) to your root layout!",
         ]
       : []),
+    ...takeManualSteps(),
     "If you have any issues, please open an issue on GitHub\n  (https://github.com/scottjones-dev/gennext/issues)",
   ];
 
