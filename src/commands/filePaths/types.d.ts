@@ -20,13 +20,22 @@ export interface Paths {
     schemaTs?: string;
     schemaAggregator?: string;
   };
+  posthog: {
+    providerComponent: string;
+    serverClient: string;
+  };
   prisma: { dbIndex: string };
   resend: {
     resendPage: string;
     firstEmailComponent: string;
+    emailLayoutComponent: string;
     emailApiRoute: string;
     emailUtils: string;
     libEmailIndex: string;
+  };
+  sentry: {
+    instrumentationTs: string;
+    instrumentationClientTs: string;
   };
   shared: {
     init: {
@@ -55,6 +64,12 @@ export interface Paths {
       layoutPage: string;
       authSchema?: string;
     };
+  };
+  storage: {
+    storageClient: string;
+    storageIndex: string;
+    uploadUrlApiRoute: string;
+    storagePage: string;
   };
   stripe: {
     subscriptionSchema?: string;

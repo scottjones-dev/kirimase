@@ -45,8 +45,11 @@ const packageSignatures: Partial<Record<AvailablePackage, string[]>> = {
   "better-auth": ["better-auth"],
   clerk: ["@clerk/nextjs"],
   drizzle: ["drizzle-orm", "drizzle-kit"],
+  posthog: ["posthog-js"],
   prisma: ["prisma"],
   resend: ["resend"],
+  sentry: ["@sentry/nextjs"],
+  storage: ["@aws-sdk/client-s3"],
   stripe: ["stripe", "@stripe/stripe-js"],
   trpc: ["@trpc/client", "@trpc/react-query", "@trpc/server", "@trpc/next"],
 };
@@ -57,8 +60,11 @@ const packageCategories: Partial<
   "better-auth": "auth",
   clerk: "auth",
   drizzle: "orm",
+  posthog: null,
   prisma: "orm",
   resend: null,
+  sentry: null,
+  storage: null,
   stripe: null,
   trpc: null,
 };

@@ -23,6 +23,7 @@ export const addResend = (
     generateEmailUtilsTs,
     generateEmailIndexTs,
     generateApiRoute,
+    generateEmailLayoutComponent,
     generateEmailTemplateComponent,
   } = resendGenerators;
 
@@ -37,7 +38,15 @@ export const addResend = (
     );
   }
 
-  // 2. Add component at components/emails/FirstEmailTemplate.tsx
+  // 2. Add shared layout component at components/emails/EmailLayout.tsx
+  createFile(
+    formatFilePath(resend.emailLayoutComponent, {
+      prefix: "rootPath",
+      removeExtension: false,
+    }),
+    generateEmailLayoutComponent()
+  );
+  // 2b. Add component at components/emails/FirstEmail.tsx
   createFile(
     formatFilePath(resend.firstEmailComponent, {
       prefix: "rootPath",
@@ -83,7 +92,10 @@ export const addResend = (
   //   preferredPackageManager
   // );
 
-  addToInstallList({ dev: [], regular: ["resend"] });
+  addToInstallList({
+    dev: [],
+    regular: ["resend", "@react-email/components"],
+  });
   if (orm === null || orm === undefined) {
     addToInstallList({ dev: [], regular: ["zod", "@t3-oss/env-nextjs"] });
   }
