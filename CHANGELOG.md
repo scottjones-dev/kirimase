@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0
+
+### Minor Changes
+
+- [#2](https://github.com/scottjones-dev/gennext/pull/2) [`4b83c88`](https://github.com/scottjones-dev/gennext/commit/4b83c88333007863dc47b0c62e36e495e84f61da) Thanks [@scottjones-dev](https://github.com/scottjones-dev)! - Rework the Resend integration's email templates to use `@react-email/components` instead of hand-rolled JSX, adding a shared `EmailLayout` component alongside `FirstEmail`. Also lays the type/config/file-path groundwork (`sentry`, `posthog`, `storage` package slots) for upcoming integrations.
+
 ## 0.2.0
 
 ### Minor Changes
