@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import type { AvailablePackage, InitOptions } from "../../../../types.js";
 import {
   addPackageToConfig,
@@ -19,23 +20,33 @@ export const addSentry = (
   const { generateInstrumentationTs, generateInstrumentationClientTs } =
     sentryGenerators;
 
-  // 1. Add instrumentation.ts (server + edge init)
-  createFile(
-    formatFilePath(sentry.instrumentationTs, {
-      prefix: "rootPath",
-      removeExtension: false,
-    }),
-    generateInstrumentationTs()
-  );
+  // 1. Add instrumentation.ts (server + edge init). If the project already
+  // has one, don't clobber it — leave a manual step instead.
+  const instrumentationPath = formatFilePath(sentry.instrumentationTs, {
+    prefix: "rootPath",
+    removeExtension: false,
+  });
+  if (existsSync(instrumentationPath)) {
+    addManualStep(
+      `${instrumentationPath} already exists — merge Sentry's server/edge \`Sentry.init()\` calls into it manually, see https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/`
+    );
+  } else {
+    createFile(instrumentationPath, generateInstrumentationTs());
+  }
 
-  // 2. Add instrumentation-client.ts (browser init)
-  createFile(
-    formatFilePath(sentry.instrumentationClientTs, {
-      prefix: "rootPath",
-      removeExtension: false,
-    }),
-    generateInstrumentationClientTs()
+  // 2. Add instrumentation-client.ts (browser init). Same existing-file
+  // guard as above.
+  const instrumentationClientPath = formatFilePath(
+    sentry.instrumentationClientTs,
+    { prefix: "rootPath", removeExtension: false }
   );
+  if (existsSync(instrumentationClientPath)) {
+    addManualStep(
+      `${instrumentationClientPath} already exists — merge Sentry's browser \`Sentry.init()\` call into it manually, see https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/`
+    );
+  } else {
+    createFile(instrumentationClientPath, generateInstrumentationClientTs());
+  }
 
   // 3. Wrap next.config.{ts,mjs,js} with withSentryConfig, warning + noting a
   // manual step in next-steps output if the file's export shape can't be

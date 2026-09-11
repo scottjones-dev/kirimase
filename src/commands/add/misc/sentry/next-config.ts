@@ -9,8 +9,10 @@ const CONFIG_FILE_CANDIDATES = [
   "next.config.js",
 ];
 
-const SENTRY_IMPORT_STATEMENT =
+const SENTRY_ESM_IMPORT_STATEMENT =
   'import { withSentryConfig } from "@sentry/nextjs";';
+const SENTRY_CJS_REQUIRE_STATEMENT =
+  'const { withSentryConfig } = require("@sentry/nextjs");';
 
 const ESM_DEFAULT_EXPORT_PATTERN =
   /export default\s+([A-Za-z_$][\w$]*)\s*;?\s*$/m;
@@ -79,10 +81,13 @@ export const wrapNextConfigWithSentry = (): {
 
   const match = esmMatch ?? cjsMatch;
   const [, identifier] = match;
-  const withImport = insertImportAfterLastImport(
-    fileContent,
-    SENTRY_IMPORT_STATEMENT
-  );
+  // A CJS next.config.js (module.exports) can't use an ESM `import`
+  // statement — Node treats .js files as CommonJS by default and would
+  // fail to parse the file. Use a require() call for that branch instead.
+  const loadStatement = esmMatch
+    ? SENTRY_ESM_IMPORT_STATEMENT
+    : SENTRY_CJS_REQUIRE_STATEMENT;
+  const withImport = insertImportAfterLastImport(fileContent, loadStatement);
 
   const exportPattern = esmMatch
     ? ESM_DEFAULT_EXPORT_PATTERN

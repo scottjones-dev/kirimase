@@ -11,8 +11,10 @@ const REGISTER_EXPORT_PATTERN = /export function register/;
 const ON_REQUEST_ERROR_PATTERN = /export const onRequestError/;
 const NODEJS_RUNTIME_PATTERN = /NEXT_RUNTIME === "nodejs"/;
 const EDGE_RUNTIME_PATTERN = /NEXT_RUNTIME === "edge"/;
-const SENTRY_CONFIG_IMPORT_PATTERN =
+const SENTRY_CONFIG_ESM_IMPORT_PATTERN =
   /import \{ withSentryConfig \} from "@sentry\/nextjs";/;
+const SENTRY_CONFIG_CJS_REQUIRE_PATTERN =
+  /const \{ withSentryConfig \} = require\("@sentry\/nextjs"\);/;
 const ESM_WRAPPED_EXPORT_PATTERN =
   /export default withSentryConfig\(nextConfig, \{/;
 const CJS_WRAPPED_EXPORT_PATTERN =
@@ -49,7 +51,7 @@ test("wrapNextConfigWithSentry patches an ESM identifier default export", async 
     assert.equal(result.patched, true);
     const { readFileSync } = await import("node:fs");
     const content = readFileSync(path.join(dir, "next.config.mjs"), "utf-8");
-    assert.match(content, SENTRY_CONFIG_IMPORT_PATTERN);
+    assert.match(content, SENTRY_CONFIG_ESM_IMPORT_PATTERN);
     assert.match(content, ESM_WRAPPED_EXPORT_PATTERN);
   } finally {
     process.chdir(cwd);
@@ -73,8 +75,11 @@ test("wrapNextConfigWithSentry patches a CJS module.exports identifier", async (
     assert.equal(result.patched, true);
     const { readFileSync } = await import("node:fs");
     const content = readFileSync(path.join(dir, "next.config.js"), "utf-8");
-    assert.match(content, SENTRY_CONFIG_IMPORT_PATTERN);
+    assert.match(content, SENTRY_CONFIG_CJS_REQUIRE_PATTERN);
     assert.match(content, CJS_WRAPPED_EXPORT_PATTERN);
+    // The generated require() statement must never be an ESM import — a
+    // CommonJS next.config.js can't parse `import` syntax.
+    assert.doesNotMatch(content, SENTRY_CONFIG_ESM_IMPORT_PATTERN);
   } finally {
     process.chdir(cwd);
     rmSync(dir, { force: true, recursive: true });
