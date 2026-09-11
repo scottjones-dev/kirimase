@@ -37,25 +37,17 @@ const manualInstallShadCn = (
     generateComponentsJson,
     generateGlobalsCss,
     generateLibUtilsTs,
-    generateTailwindConfig,
     generateThemeProvider,
     generateThemeToggler,
   } = shadcnGenerators;
   const { shared } = getFilePaths();
-  // add deps (tailwindcss-animate class-variance-authority clsx tailwind-merge lucide-react)
-  // await installPackages(
-  //   {
-  //     dev: "",
-  //     regular:
-  //       "tailwindcss-animate class-variance-authority clsx tailwind-merge lucide-react next-themes",
-  //   },
-  //   preferredPackageManager
-  // );
 
   addToInstallList({
     dev: [],
     regular: [
-      "tailwindcss-animate",
+      "tw-animate-css",
+      "radix-ui",
+      "shadcn",
       "class-variance-authority",
       "clsx",
       "tailwind-merge",
@@ -64,8 +56,6 @@ const manualInstallShadCn = (
     ],
   });
 
-  // add tailwind.config.ts
-  createFile("tailwind.config.ts", generateTailwindConfig(rootPath));
   // update globals.css
   replaceFile(
     formatFilePath(shared.init.globalCss, {
@@ -77,7 +67,7 @@ const manualInstallShadCn = (
   // add cn helper (lib/utils.ts)
   createFile(rootPath.concat("lib/utils.ts"), generateLibUtilsTs());
   // create components.json
-  createFile("components.json", generateComponentsJson(rootPath));
+  createFile("components.json", generateComponentsJson());
 
   if (options.headless === undefined) {
     createFile(rootPath.concat("app/loading.tsx"), generateLoadingPage());

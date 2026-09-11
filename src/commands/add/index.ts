@@ -17,7 +17,6 @@ import {
   createLandingPage,
   generateGenericHomepage,
   generateGlobalsCss,
-  generateUpdatedTWConfig,
 } from "./misc/defaultStyles/generators.js";
 import { addNavbarAndSettings } from "./misc/navbar/generators.js";
 import { addResend } from "./misc/resend/index.js";
@@ -158,7 +157,6 @@ const configureComponentLibrary = async (
       spinner.text = "Configuring Base Styles";
       const { shared } = getFilePaths();
       addToInstallList({ dev: [], regular: ["lucide-react"] });
-      replaceFile("tailwind.config.ts", generateUpdatedTWConfig());
       replaceFile(
         formatFilePath(shared.init.globalCss, {
           prefix: "rootPath",
