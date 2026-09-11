@@ -35,9 +35,10 @@ jobs:
       - run: pnpm test:e2e
       - name: Create release pull request or publish
         id: changesets
-        uses: changesets/action@v1
+        uses: changesets/action@v2
         with:
-          publish: pnpm release
-          version: pnpm run version
+          publish-script: pnpm release
+          version-script: pnpm run version
+          push-with-git-cli: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
