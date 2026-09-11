@@ -1,9 +1,16 @@
 #!/usr/bin/env node
 
 import { Command } from "commander";
+import { consola } from "consola";
 import { addPackage } from "./commands/add/index.js";
 import { buildSchema } from "./commands/generate/index.js";
 import { initProject } from "./commands/init/index.js";
+
+process.on("unhandledRejection", (error: unknown) => {
+  const message = error instanceof Error ? error.message : String(error);
+  consola.fatal(message);
+  process.exit(1);
+});
 
 const program = new Command();
 program.name("gennext").description("GenNext CLI").version("0.1.0");

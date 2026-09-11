@@ -7,6 +7,7 @@ import type {
   PackageType,
 } from "../../types.js";
 import {
+  ensurePnpmBuildsAllowed,
   installPackages,
   installShadcnUIComponents,
   readConfigFile,
@@ -314,6 +315,7 @@ export const installPackagesFromList = async () => {
       .join(" ")
       .trim(),
   };
+  ensurePnpmBuildsAllowed(preferredPackageManager);
   spinner.text = "Installing Packages";
   await installPackages(formattedInstallList, preferredPackageManager);
 };

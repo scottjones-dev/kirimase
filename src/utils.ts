@@ -71,40 +71,57 @@ export const runCommand = async (command: string, args: string[]) => {
   }
 };
 
+const PNPM_WORKSPACE_FILE = "pnpm-workspace.yaml";
+const DANGEROUSLY_ALLOW_ALL_BUILDS_KEY = "dangerouslyAllowAllBuilds";
+
+// pnpm v10+ blocks dependency postinstall/build scripts by default (its
+// "ignored builds" supply-chain gate) unless explicitly approved. Left
+// unhandled, packages like esbuild (pulled in transitively by drizzle-kit
+// and other devDependencies) fail to install and the whole install fails
+// with no obvious cause. This project is fully owned by the person running
+// the CLI, so allowing all builds here is a reasonable default; pnpm's own
+// `pnpm approve-builds` remains available for anyone who wants to be more
+// selective afterward.
+export function ensurePnpmBuildsAllowed(pmType: PMType) {
+  if (pmType !== "pnpm") {
+    return;
+  }
+  const workspacePath = path.resolve(PNPM_WORKSPACE_FILE);
+  if (!existsSync(workspacePath)) {
+    fs.writeFileSync(
+      workspacePath,
+      `${DANGEROUSLY_ALLOW_ALL_BUILDS_KEY}: true\n`
+    );
+    return;
+  }
+  const existing = fs.readFileSync(workspacePath, "utf-8");
+  if (!existing.includes(DANGEROUSLY_ALLOW_ALL_BUILDS_KEY)) {
+    fs.writeFileSync(
+      workspacePath,
+      `${existing.trimEnd()}\n${DANGEROUSLY_ALLOW_ALL_BUILDS_KEY}: true\n`
+    );
+  }
+}
+
 export async function installPackages(
   packages: { regular: string; dev: string },
   pmType: PMType
 ) {
-  const _packagesListString = packages.regular.concat(" ").concat(packages.dev);
-  // consola.start(`Installing packages: ${packagesListString}...`);
-
   const installCommand = pmType === "npm" ? "install" : "add";
 
-  try {
-    spinner.stop();
-    consola.info("Installing Dependencies");
-    if (packages.regular) {
-      await runCommand(
-        pmType,
-        [installCommand].concat(packages.regular.split(" "))
-      );
-    }
-    if (packages.dev) {
-      await runCommand(
-        pmType,
-        [installCommand, "-D"].concat(packages.dev.split(" "))
-      );
-    }
-    // consola.success(
-    //   `Regular dependencies installed: \n${packages.regular
-    //     .split(" ")
-    //     .join("\n")}`
-    // );
-    // consola.success(
-    //   `Dev dependencies installed: \n${packages.dev.split(" ").join("\n")}`
-    // );
-  } catch (error) {
-    console.error(`An error occurred: ${error.message}`);
+  spinner.stop();
+  consola.info("Installing Dependencies");
+  if (packages.regular) {
+    await runCommand(
+      pmType,
+      [installCommand].concat(packages.regular.split(" "))
+    );
+  }
+  if (packages.dev) {
+    await runCommand(
+      pmType,
+      [installCommand, "-D"].concat(packages.dev.split(" "))
+    );
   }
 }
 

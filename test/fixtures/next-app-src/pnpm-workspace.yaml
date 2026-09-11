@@ -1,4 +1,3 @@
-dangerouslyAllowAllBuilds: true
 # npm's "latest" dist-tag for prisma currently points at an 8.0.0 prerelease
 # with an incompatible, completely redesigned CLI (no `generate`/`db push`),
 # and even the latest stable 7.x major drops inline `datasource { url = }`
